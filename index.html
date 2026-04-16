@@ -1371,8 +1371,8 @@ async function loadCore(){
     sb.from('transaction_types').select('*').eq('business_id', bid).order('sort_order').order('name'),
     sb.from('attendance_records').select('*').eq('business_id', bid).eq('attendance_date', attendanceDate),
     sb.from('attendance_records').select('*').eq('business_id', bid).gte('attendance_date', monthStart).lte('attendance_date', monthEnd),
-    sb.from('stock_items').select('*').eq('business_id', bid).order('name'),
-    sb.from('stock_movements').select('*').eq('business_id', bid).order('movement_date', {ascending:false})
+    sb.from('stock_items').select('*').eq('user_id', state.session.user.id).order('name'),
+    sb.from('stock_movements').select('*').eq('user_id', state.session.user.id).order('movement_date', {ascending:false})
   ]);
 
   state.suppliers = suppliers || [];
@@ -2996,18 +2996,18 @@ async function createEmployee(){
 var _stokTip = 'giris';
 
 function stokMevcut(itemId){
-  var giris = state.stokMovements.filter(function(m){ return m.item_id===itemId && m.type==='giris'; }).reduce(function(s,m){ return s+Number(m.quantity||0); },0);
-  var cikis = state.stokMovements.filter(function(m){ return m.item_id===itemId && m.type==='cikis'; }).reduce(function(s,m){ return s+Number(m.quantity||0); },0);
+  var giris = state.stokMovements.filter(function(m){ return m.stock_item_id===itemId && m.movement_type==='giris'; }).reduce(function(s,m){ return s+Number(m.quantity||0); },0);
+  var cikis = state.stokMovements.filter(function(m){ return m.stock_item_id===itemId && m.movement_type==='cikis'; }).reduce(function(s,m){ return s+Number(m.quantity||0); },0);
   return giris - cikis;
 }
 
 function stokSonAlisFiyat(itemId){
   var girisler = state.stokMovements
-    .filter(function(m){ return m.item_id===itemId && m.type==='giris' && m.unit_price; })
+    .filter(function(m){ return m.stock_item_id===itemId && m.movement_type==='giris' && m.unit_cost; })
     .sort(function(a,b){ return String(b.movement_date).localeCompare(String(a.movement_date)); });
-  if(girisler.length) return Number(girisler[0].unit_price);
+  if(girisler.length) return Number(girisler[0].unit_cost);
   var item = state.stokItems.find(function(x){ return x.id===itemId; });
-  return item ? Number(item.purchase_price||0) : 0;
+  return item ? Number(item.unit_cost||0) : 0;
 }
 
 function renderStok(){
@@ -3031,7 +3031,7 @@ function renderStok(){
   var items = state.stokItems.filter(function(item){
     if(kat && (item.category||'').toLowerCase() !== kat) return false;
     if(ara && (item.name||'').toLowerCase().indexOf(ara) < 0) return false;
-    if(sadeceCritical && stokMevcut(item.id) >= Number(item.min_quantity||0)) return false;
+    if(sadeceCritical && stokMevcut(item.id) >= Number(item.min_stock||0)) return false;
     return true;
   });
 
@@ -3040,7 +3040,7 @@ function renderStok(){
   state.stokItems.forEach(function(item){
     var mevcut = stokMevcut(item.id);
     toplamMaliyet += mevcut * stokSonAlisFiyat(item.id);
-    if(mevcut < Number(item.min_quantity||0)) kritikSayisi++;
+    if(mevcut < Number(item.min_stock||0)) kritikSayisi++;
   });
   if(byId('stokTotalItems')) byId('stokTotalItems').textContent = state.stokItems.length;
   if(byId('stokCritical')) byId('stokCritical').textContent = kritikSayisi;
@@ -3054,14 +3054,14 @@ function renderStok(){
       tbody.innerHTML = '<tr><td colspan="9" class="muted" style="text-align:center;padding:20px">'+(state.stokItems.length?'Filtre sonucu yok.':'Henüz ürün eklenmemiş.')+'</td></tr>';
     } else {
       items.forEach(function(item){
-        var mevcut=stokMevcut(item.id), min=Number(item.min_quantity||0);
+        var mevcut=stokMevcut(item.id), min=Number(item.min_stock||0);
         var alisFiyat=stokSonAlisFiyat(item.id), satisFiyat=Number(item.sale_price||0);
         var maliyet=mevcut*alisFiyat, kritik=mevcut<min;
         var durum=kritik?'<span class="badge badge-danger">⚠️ Kritik</span>':'<span class="badge badge-ok">✓ Normal</span>';
         var tr=document.createElement('tr');
         if(kritik) tr.style.background='var(--danger-bg)';
         tr.innerHTML='<td><b>'+item.name+'</b></td><td>'+(item.category||'-')+'</td>'+
-          '<td><b>'+(mevcut%1===0?mevcut:mevcut.toFixed(2))+' '+(item.unit||'')+'</b></td>'+
+          '<td><b>'+(mevcut%1===0?mevcut:mevcut.toFixed(2))+' '+(item.supplier_name||'')+'</b></td>'+
           '<td>'+(min||'-')+'</td><td>'+(alisFiyat?money(alisFiyat):'-')+'</td>'+
           '<td>'+(satisFiyat?money(satisFiyat):'-')+'</td><td><b>'+money(maliyet)+'</b></td>'+
           '<td>'+durum+'</td><td style="white-space:nowrap">'+
@@ -3080,15 +3080,15 @@ function renderStok(){
     mobile.innerHTML='';
     if(!items.length){ mobile.innerHTML='<div class="mobile-item muted">'+(state.stokItems.length?'Filtre sonucu yok.':'Henüz ürün eklenmemiş.')+'</div>'; }
     else items.forEach(function(item){
-      var mevcut=stokMevcut(item.id),min=Number(item.min_quantity||0);
-      var alisFiyat=stokSonAlisFiyat(item.id),satisFiyat=Number(item.sale_price||0);
+      var mevcut=stokMevcut(item.id),min=Number(item.min_stock||0);
+      var alisFiyat=stokSonAlisFiyat(item.id),satisFiyat=0;
       var maliyet=mevcut*alisFiyat,kritik=mevcut<min;
       var div=document.createElement('div'); div.className='mobile-item';
       if(kritik) div.style.borderColor='var(--danger)';
       div.innerHTML='<div class="mobile-item-title">'+item.name+
         (kritik?' <span class="badge badge-danger" style="font-size:10px">⚠️</span>':'')+'</div>'+
         '<div class="mobile-kv"><span class="k">Kategori</span><span>'+(item.category||'-')+'</span></div>'+
-        '<div class="mobile-kv"><span class="k">Mevcut</span><span><b>'+(mevcut%1===0?mevcut:mevcut.toFixed(2))+' '+(item.unit||'')+'</b></span></div>'+
+        '<div class="mobile-kv"><span class="k">Mevcut</span><span><b>'+(mevcut%1===0?mevcut:mevcut.toFixed(2))+' '+(item.supplier_name||'')+'</b></span></div>'+
         '<div class="mobile-kv"><span class="k">Min. Stok</span><span>'+(min||'-')+'</span></div>'+
         '<div class="mobile-kv"><span class="k">Alış Fiyatı</span><span>'+(alisFiyat?money(alisFiyat):'-')+'</span></div>'+
         '<div class="mobile-kv"><span class="k">Satış Fiyatı</span><span>'+(satisFiyat?money(satisFiyat):'-')+'</span></div>'+
@@ -3110,10 +3110,10 @@ function openStokItem(id){
   byId('stokItemModalTitle').textContent=id?'Ürün Düzenle':'Ürün Ekle';
   byId('stokItemAd').value=item?(item.name||''):'';
   byId('stokItemKat').value=item?(item.category||''):'';
-  byId('stokItemBirim').value=item?(item.unit||''):'';
-  byId('stokItemMin').value=item?(item.min_quantity||''):'';
-  byId('stokItemAlisFiyat').value=item?(item.purchase_price||''):'';
-  byId('stokItemSatisFiyat').value=item?(item.sale_price||''):'';
+  byId('stokItemBirim').value=item?(item.supplier_name||''):'';
+  byId('stokItemMin').value=item?(item.min_stock||''):'';
+  byId('stokItemAlisFiyat').value=item?(item.unit_cost||''):'';
+  byId('stokItemSatisFiyat').value='';
   byId('stokItemModal').classList.remove('hidden');
 }
 function closeStokItem(){ byId('stokItemModal').classList.add('hidden'); }
@@ -3122,15 +3122,13 @@ async function saveStokItem(){
   var name=byId('stokItemAd').value.trim();
   if(!name){ alert('Ürün adı gerekli.'); return; }
   var payload={
-    business_id:state.activeBusinessId, name,
+    user_id:state.session.user.id, name,
     category:byId('stokItemKat').value.trim()||null,
-    unit:byId('stokItemBirim').value.trim()||null,
-    min_quantity:Number(byId('stokItemMin').value)||0,
-    purchase_price:Number(byId('stokItemAlisFiyat').value)||null,
-    sale_price:Number(byId('stokItemSatisFiyat').value)||null,
-    created_by:state.session.user.id
+    supplier_name:byId('stokItemBirim').value.trim()||null,
+    min_stock:Number(byId('stokItemMin').value)||0,
+    unit_cost:Number(byId('stokItemAlisFiyat').value)||null
   };
-  var res=id ? await sb.from('stock_items').update(payload).eq('id',id).eq('business_id',state.activeBusinessId)
+  var res=id ? await sb.from('stock_items').update(payload).eq('id',id).eq('user_id',state.session.user.id)
               : await sb.from('stock_items').insert(payload);
   if(res.error){ alert('Hata: '+res.error.message); return; }
   closeStokItem(); await loadCore();
@@ -3138,10 +3136,10 @@ async function saveStokItem(){
 async function deleteStokItem(id){
   var item=state.stokItems.find(function(x){ return x.id===id; });
   if(!item) return;
-  var n=state.stokMovements.filter(function(m){ return m.item_id===id; }).length;
+  var n=state.stokMovements.filter(function(m){ return m.stock_item_id===id; }).length;
   if(n>0 && !confirm(item.name+' için '+n+' hareket var. Yine de sil?')) return;
   if(!confirm(item.name+' ürününü sil?')) return;
-  var {error}=await sb.from('stock_items').delete().eq('id',id).eq('business_id',state.activeBusinessId);
+  var {error}=await sb.from('stock_items').delete().eq('id',id).eq('user_id',state.session.user.id);
   if(error){ alert(error.message); return; }
   await loadCore();
 }
@@ -3158,10 +3156,10 @@ function openStokHareket(itemId){
   _stokTip='giris';
   byId('stokHareketItemId').value=itemId;
   byId('stokHareketTitle').textContent=item.name+' — Hareket Ekle';
-  byId('stokHareketSub').textContent='Mevcut: '+stokMevcut(itemId)+' '+(item.unit||'');
+  byId('stokHareketSub').textContent='Mevcut: '+stokMevcut(itemId)+' '+(item.supplier_name||'');
   byId('stokHareketTarih').value=today();
   byId('stokHareketMiktar').value='';
-  byId('stokHareketFiyat').value=item.purchase_price||'';
+  byId('stokHareketFiyat').value=item.unit_cost||'';
   byId('stokHareketNot').value='';
   stokTipSec('giris');
   byId('stokHareketModal').classList.remove('hidden');
@@ -3172,12 +3170,11 @@ async function saveStokHareket(){
   var miktar=Number(byId('stokHareketMiktar').value||0);
   if(!miktar||miktar<=0){ alert('Geçerli miktar gir.'); return; }
   var payload={
-    business_id:state.activeBusinessId, item_id:itemId,
-    type:_stokTip, quantity:miktar,
-    unit_price:Number(byId('stokHareketFiyat').value||0)||null,
+    user_id:state.session.user.id, stock_item_id:itemId,
+    movement_type:_stokTip, quantity:miktar,
+    unit_cost:Number(byId('stokHareketFiyat').value||0)||null,
     movement_date:byId('stokHareketTarih').value||today(),
-    note:byId('stokHareketNot').value.trim()||null,
-    created_by:state.session.user.id
+    note:byId('stokHareketNot').value.trim()||null
   };
   var {error}=await sb.from('stock_movements').insert(payload);
   if(error){ alert('Hata: '+error.message); return; }
@@ -3187,9 +3184,9 @@ async function saveStokHareket(){
 function openStokHareketList(itemId){
   var item=state.stokItems.find(function(x){ return x.id===itemId; });
   if(!item) return;
-  var hareketler=state.stokMovements.filter(function(m){ return m.item_id===itemId; });
+  var hareketler=state.stokMovements.filter(function(m){ return m.stock_item_id===itemId; });
   byId('stokHareketListTitle').textContent=item.name+' — Hareketler';
-  byId('stokHareketListSub').textContent='Mevcut: '+stokMevcut(itemId)+' '+(item.unit||'');
+  byId('stokHareketListSub').textContent='Mevcut: '+stokMevcut(itemId)+' '+(item.supplier_name||'');
   var tbody=byId('stokHareketListBody'), ml=byId('stokHareketListMobile');
   tbody.innerHTML=''; if(ml) ml.innerHTML='';
   if(!hareketler.length){
@@ -3197,12 +3194,12 @@ function openStokHareketList(itemId){
     if(ml) ml.innerHTML='<div class="muted" style="padding:12px;text-align:center">Henüz hareket yok.</div>';
   } else {
     hareketler.forEach(function(m){
-      var tipRenk=m.type==='giris'?'var(--ok)':'var(--danger)';
-      var tipLbl=m.type==='giris'?'📥 Giriş':'📤 Çıkış';
-      var toplam=m.unit_price?money(Number(m.quantity||0)*Number(m.unit_price||0)):'-';
+      var tipRenk=m.movement_type==='giris'?'var(--ok)':'var(--danger)';
+      var tipLbl=m.movement_type==='giris'?'📥 Giriş':'📤 Çıkış';
+      var toplam=m.unit_cost?money(Number(m.quantity||0)*Number(m.unit_cost||0)):'-';
       var tr=document.createElement('tr');
       tr.innerHTML='<td>'+m.movement_date+'</td><td style="color:'+tipRenk+';font-weight:700">'+tipLbl+'</td>'+
-        '<td><b>'+Number(m.quantity||0)+'</b></td><td>'+(m.unit_price?money(m.unit_price):'-')+'</td>'+
+        '<td><b>'+Number(m.quantity||0)+'</b></td><td>'+(m.unit_cost?money(m.unit_cost):'-')+'</td>'+
         '<td>'+toplam+'</td><td>'+(m.note||'-')+'</td>'+
         '<td><button class="mini" onclick="deleteStokHareket(\''+m.id+'\',\''+itemId+'\')" style="color:var(--danger)">Sil</button></td>';
       tbody.appendChild(tr);
@@ -3211,9 +3208,9 @@ function openStokHareketList(itemId){
         div.innerHTML='<div class="movement-card-top"><div class="movement-card-type" style="color:'+tipRenk+'">'+tipLbl+'</div>'+
           '<div class="movement-card-date">'+m.movement_date+'</div></div>'+
           '<div class="movement-card-amounts">'+
-          '<div class="movement-card-amount"><span class="lbl">Miktar</span>'+Number(m.quantity||0)+' '+(item.unit||'')+'</div>'+
-          (m.unit_price?'<div class="movement-card-amount"><span class="lbl">Birim Fiyat</span>'+money(m.unit_price)+'</div>':'')+
-          (m.unit_price?'<div class="movement-card-amount"><span class="lbl">Toplam</span>'+toplam+'</div>':'')+
+          '<div class="movement-card-amount"><span class="lbl">Miktar</span>'+Number(m.quantity||0)+' '+(item.supplier_name||'')+'</div>'+
+          (m.unit_cost?'<div class="movement-card-amount"><span class="lbl">Birim Fiyat</span>'+money(m.unit_cost)+'</div>':'')+
+          (m.unit_cost?'<div class="movement-card-amount"><span class="lbl">Toplam</span>'+toplam+'</div>':'')+
           '</div>'+(m.note?'<div class="movement-card-desc">'+m.note+'</div>':'')+
           '<div class="movement-card-actions"><button class="mini" onclick="deleteStokHareket(\''+m.id+'\',\''+itemId+'\')" style="color:var(--danger);flex:1">Sil</button></div>';
         ml.appendChild(div);
@@ -3225,7 +3222,7 @@ function openStokHareketList(itemId){
 function closeStokHareketList(){ byId('stokHareketListModal').classList.add('hidden'); }
 async function deleteStokHareket(movementId,itemId){
   if(!confirm('Bu hareketi silmek istiyor musun?')) return;
-  var {error}=await sb.from('stock_movements').delete().eq('id',movementId).eq('business_id',state.activeBusinessId);
+  var {error}=await sb.from('stock_movements').delete().eq('id',movementId).eq('user_id',state.session.user.id);
   if(error){ alert(error.message); return; }
   await loadCore(); openStokHareketList(itemId);
 }
