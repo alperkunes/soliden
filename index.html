@@ -7,432 +7,199 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root{
-      --bg:#f4f1ec;
-      --card:#ffffff;
-      --line:#e2d9ce;
-      --line2:#f0ebe3;
-      --text:#1a1510;
-      --text2:#3d3730;
-      --muted:#8c7f73;
-      --acc:#7d3f0e;
-      --acc2:#a0521a;
-      --acc-light:#fdf0e6;
-      --ok:#166534;
-      --ok-bg:#f0fdf4;
-      --danger:#991b1b;
-      --danger-bg:#fef2f2;
-      --warn:#92400e;
-      --warn-bg:#fffbeb;
-      --radius:14px;
-      --radius-sm:10px;
-      --shadow:0 1px 3px rgba(0,0,0,.07),0 4px 12px rgba(0,0,0,.05);
-      --shadow-sm:0 1px 2px rgba(0,0,0,.06);
+      --bg:#f5f2ed;--card:#fff;--line:#ddd6cb;--text:#241f1a;--muted:#7a7269;--acc:#8b4a16;
+      --ok:#1f7a44;--danger:#b63b2f;--soft:#ede7df;--radius:16px;
     }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
-    .wrap{max-width:1200px;margin:0 auto;padding:20px}
-
-    /* KART */
-    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:14px;box-shadow:var(--shadow-sm)}
-    .card-inner{background:var(--bg);border:1px solid var(--line2);border-radius:var(--radius-sm);padding:14px}
-
-    /* LAYOUT */
+    *{box-sizing:border-box} body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}
+    .wrap{max-width:1200px;margin:0 auto;padding:18px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px}
     .top{display:flex;justify-content:space-between;align-items:center;gap:12px}
-    .brand{font-family:Georgia,serif;font-style:italic;font-size:26px;color:var(--acc);letter-spacing:-.3px}
-    .muted{color:var(--muted);font-size:13px;line-height:1.4}
+    .brand{font-family:Georgia,serif;font-style:italic;font-size:24px;color:var(--acc)}
+    .muted{color:var(--muted);font-size:13px}
     .grid{display:grid;gap:12px}
     .grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
     .grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
     .grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}
     @media (max-width:900px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}}
-
-    /* FORMLAR */
     input,select,textarea,button{font:inherit}
-    input,select,textarea{
-      width:100%;padding:10px 13px;
-      border:1.5px solid var(--line);
-      border-radius:var(--radius-sm);
-      background:#fff;
-      color:var(--text);
-      transition:border-color .15s,box-shadow .15s;
-      outline:none;
-    }
-    input:focus,select:focus,textarea:focus{
-      border-color:var(--acc2);
-      box-shadow:0 0 0 3px rgba(125,63,14,.1);
-    }
-    input[disabled],select[disabled]{background:var(--bg);color:var(--muted);cursor:not-allowed}
-
-    /* BUTONLAR */
-    button{
-      padding:9px 16px;
-      border-radius:var(--radius-sm);
-      border:1.5px solid var(--line);
-      background:#fff;
-      cursor:pointer;
-      font-weight:500;
-      color:var(--text2);
-      transition:all .15s;
-      display:inline-flex;align-items:center;justify-content:center;gap:6px;
-    }
-    button:hover{background:var(--bg);border-color:var(--acc2);color:var(--acc)}
-    button:active{transform:scale(.98)}
-    .btn-primary{
-      background:var(--acc);color:#fff;
-      border-color:var(--acc);
-      font-weight:600;
-      box-shadow:0 2px 6px rgba(125,63,14,.25);
-    }
-    .btn-primary:hover{background:var(--acc2);border-color:var(--acc2);color:#fff}
-    .btn-danger{background:var(--danger-bg);color:var(--danger);border-color:#fca5a5}
-    .btn-danger:hover{background:var(--danger);color:#fff;border-color:var(--danger)}
-    .btn-sm{padding:6px 12px;font-size:13px}
-
-    /* TABS */
-    .tabs{display:flex;gap:6px;flex-wrap:wrap;padding:4px;background:var(--bg);border-radius:var(--radius-sm);border:1px solid var(--line2)}
-    .tab{
-      padding:8px 16px;
-      border-radius:8px;
-      font-size:14px;font-weight:500;
-      border:none;background:transparent;
-      color:var(--muted);
-      transition:all .15s;
-    }
-    .tab:hover{background:var(--card);color:var(--text)}
-    .tab.active{background:var(--card);color:var(--acc);font-weight:700;box-shadow:var(--shadow-sm);border:1px solid var(--line)}
-
-    /* ROWS */
+    input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#fff}
+    button{padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:#fff;cursor:pointer}
+    .btn-primary{background:var(--acc);color:#fff;border-color:var(--acc)}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap}
+    .tab.active{background:var(--acc);color:#fff;border-color:var(--acc)}
     .row{display:flex;gap:10px;align-items:center}
     .row-between{display:flex;justify-content:space-between;align-items:center;gap:10px}
-
-    /* BADGE */
-    .badge{
-      display:inline-flex;align-items:center;
-      padding:4px 12px;
-      border-radius:999px;
-      background:var(--acc-light);
-      color:var(--acc);
-      font-weight:700;font-size:12px;
-      border:1px solid rgba(125,63,14,.15);
-    }
-    .badge-ok{background:var(--ok-bg);color:var(--ok);border-color:rgba(22,101,52,.15)}
-    .badge-danger{background:var(--danger-bg);color:var(--danger);border-color:rgba(153,27,27,.15)}
-    .badge-warn{background:var(--warn-bg);color:var(--warn);border-color:rgba(146,64,14,.15)}
-
-    /* TABLO */
+    .badge{display:inline-block;padding:4px 10px;border-radius:999px;background:#f0e6dc;color:var(--acc);font-weight:700;font-size:12px}
     table{width:100%;border-collapse:collapse}
-    thead th{
-      padding:10px 12px;
-      background:var(--bg);
-      border-bottom:2px solid var(--line);
-      text-align:left;font-size:12px;
-      font-weight:700;text-transform:uppercase;
-      letter-spacing:.04em;color:var(--muted);
-    }
-    td{padding:11px 12px;border-bottom:1px solid var(--line2);font-size:14px;vertical-align:middle}
-    tbody tr:hover td{background:var(--acc-light)}
-    tbody tr:last-child td{border-bottom:none}
-
-    /* GENEL */
+    th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left;font-size:14px}
     .hidden{display:none}
-    .summary{font-size:30px;font-weight:800;letter-spacing:-.5px;line-height:1.1}
-    .danger{color:var(--danger)} .ok{color:var(--ok)} .warn{color:var(--warn)}
-    .att-select{min-width:130px}
-    .mini{font-size:12px;padding:6px 10px;min-height:32px}
-    .nowrap{white-space:nowrap}
-    .scroll-x{overflow-x:auto}
+    .summary{font-size:28px;font-weight:800}
+    .danger{color:var(--danger)} .ok{color:var(--ok)}
+    .att-select{min-width:130px}.mini{font-size:12px;padding:6px 9px}.nowrap{white-space:nowrap}.scroll-x{overflow-x:auto}
     .login{max-width:420px;margin:60px auto}
-    .section-title{font-size:20px;font-weight:800;margin:0 0 14px;color:var(--text)}
-    .form-label{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px;display:block;text-transform:uppercase;letter-spacing:.04em}
-
-    /* MODAL */
-    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center;padding:18px;z-index:99}
+    .section-title{font-size:22px;font-weight:800;margin:0 0 12px}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;padding:18px;z-index:99}
     .modal-backdrop.hidden{display:none!important}
-    .modal{
-      background:#fff;
-      border-radius:20px 20px 16px 16px;
-      max-width:900px;width:100%;
-      max-height:88vh;overflow:auto;
-      border:1px solid var(--line);
-      padding:20px;
-      box-shadow:0 -4px 32px rgba(0,0,0,.12);
-    }
-    .modal-head{
-      display:flex;justify-content:space-between;align-items:flex-start;
-      gap:12px;margin-bottom:16px;
-      padding-bottom:14px;
-      border-bottom:1px solid var(--line2);
-    }
+    .modal{background:#fff;border-radius:18px;max-width:900px;width:100%;max-height:85vh;overflow:auto;border:1px solid var(--line);padding:16px}
+    .modal-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
     .modal-title{font-size:20px;font-weight:800}
-
-    /* PANEL ÖZET KARTLARI */
-    .summary-card{
-      background:linear-gradient(135deg,var(--acc-light) 0%,#fff 100%);
-      border:1px solid rgba(125,63,14,.15);
-      border-radius:var(--radius);
-      padding:16px 20px;
-    }
-    .summary-card.ok{background:linear-gradient(135deg,var(--ok-bg) 0%,#fff 100%);border-color:rgba(22,101,52,.15)}
-    .summary-card.danger{background:linear-gradient(135deg,var(--danger-bg) 0%,#fff 100%);border-color:rgba(153,27,27,.15)}
-
-    /* GİRİŞ EKRANI */
-    .login-brand{font-family:Georgia,serif;font-style:italic;font-size:32px;color:var(--acc);margin-bottom:4px}
-    .login-sub{color:var(--muted);font-size:14px;margin-bottom:24px}
-    .input-group{margin-bottom:14px}
-    .input-group .form-label{margin-bottom:5px}
   
     /* =========================
-       MOBİL UYUM — YENİDEN YAZILDI
+       MOBİL UYUM İYİLEŞTİRMELERİ
     ========================= */
-
-    /* PANEL ÖZET GRID */
-    .panel-summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-
-    /* MASAÜSTÜ: Tablolar görünür, kart listesi gizli */
     .mobile-card-list{display:none}
     .desktop-table{display:table}
     .action-row{display:flex;gap:6px;flex-wrap:wrap}
+    .tabbar-wrap{position:sticky;top:0;z-index:20;background:var(--bg);padding-top:6px}
     .form-actions{display:flex;gap:8px;flex-wrap:wrap}
 
-    /* BOTTOM NAV — sadece mobilde görünecek */
-    .bottom-nav{display:none}
-
-    /* ── 760px — TABLET ── */
-    @media (max-width:760px){
-      body{font-size:15px}
-      .wrap{padding:12px;padding-bottom:80px} /* bottom-nav için boşluk */
-      .card{border-radius:14px;padding:14px;margin-bottom:10px}
-      .summary-card{padding:14px 16px}
-      .brand{font-size:20px}
-      .login-brand{font-size:28px}
-      .muted{font-size:12px}
-      .section-title{font-size:17px;margin-bottom:10px}
+    @media (max-width: 760px){
+      body{font-size:14px}
+      .wrap{padding:10px;max-width:100%}
+      .card{border-radius:14px;padding:12px;margin-bottom:10px}
+      .brand{font-size:21px}
+      .top{align-items:flex-start}
+      .top .row{align-self:flex-end}
+      .grid,.grid-2,.grid-3,.grid-4{grid-template-columns:1fr!important;gap:9px}
+      input,select,textarea,button{font-size:16px}
+      button{padding:10px 12px;min-height:42px}
+      .mini{font-size:13px;padding:8px 10px;min-height:36px}
+      .section-title{font-size:20px;margin-bottom:8px}
       .summary{font-size:22px}
-
-      /* Grid'ler tek sütun */
-      .grid-2,.grid-3,.grid-4{grid-template-columns:1fr!important;gap:9px}
-
-      /* Input/button boyut — iOS zoom engeli */
-      input,select,textarea{font-size:16px}
-      button{font-size:15px;padding:11px 14px;min-height:46px}
-      .mini{font-size:13px;padding:8px 10px;min-height:38px}
-      .btn-sm{min-height:34px;padding:7px 12px}
-
-      /* Tab bar tablet'te yatay scroll */
       .tabs{
-        overflow-x:auto;flex-wrap:nowrap;
-        gap:4px;padding:3px;
+        display:flex;
+        overflow-x:auto;
+        flex-wrap:nowrap;
+        gap:6px;
+        padding-bottom:4px;
         -webkit-overflow-scrolling:touch;
-        scrollbar-width:none;
       }
-      .tabs::-webkit-scrollbar{display:none}
-      .tabs .tab{flex:0 0 auto;white-space:nowrap;padding:8px 14px;font-size:13px}
-
-      /* Header */
-      .top{align-items:center;gap:8px}
-
-      /* Row'lar mobilde sarmalasın */
-      .row-between{flex-wrap:wrap;gap:8px}
-      .row-between > .section-title{width:100%}
-
-      /* Tablo kaydırmalı */
-      table{min-width:680px}
-      .scroll-x,.desktop-table-wrap{
-        overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%;
-        border-radius:10px;
+      .tabs .tab{
+        flex:0 0 auto;
+        white-space:nowrap;
       }
-
-      /* Modal alt sheet */
-      .modal-backdrop{align-items:flex-end;padding:0}
+      .row,.row-between{
+        flex-wrap:wrap;
+        align-items:stretch;
+      }
+      .row-between > *{width:100%}
+      .badge{display:inline-flex;width:auto}
+      table{
+        min-width:720px;
+      }
+      .scroll-x{
+        overflow-x:auto;
+        -webkit-overflow-scrolling:touch;
+        width:100%;
+      }
+      .desktop-table-wrap{
+        overflow-x:auto;
+        -webkit-overflow-scrolling:touch;
+      }
+      .modal-backdrop{
+        align-items:flex-end;
+        padding:0;
+      }
       .modal{
-        width:100%;max-height:92vh;
-        border-radius:20px 20px 0 0;
-        padding:18px 16px;
+        width:100%;
+        max-height:92vh;
+        border-radius:18px 18px 0 0;
+        padding:14px;
       }
-      .modal-head{position:sticky;top:0;background:#fff;z-index:5;padding-bottom:12px}
-
-      /* Grid-3 panel özet — 3 sütun koru ama küçük */
-      .panel-summary-grid{gap:8px}
-      .panel-summary-grid .summary{font-size:18px}
-      .panel-summary-grid .muted{font-size:10px;font-weight:600}
-
-      /* Form input fix */
-      #cashDesc,#editCashDesc{grid-column:auto!important}
-      .login{margin:20px auto;max-width:100%}
+      .modal-head{
+        position:sticky;
+        top:0;
+        background:#fff;
+        z-index:5;
+        padding-bottom:10px;
+      }
+      #cashDesc,
+      #editCashDesc{
+        grid-column:auto!important;
+      }
+      .login{margin:24px auto}
+      .muted{font-size:12px}
     }
 
-    /* ── 520px — TELEFON ── */
-    @media (max-width:520px){
-      .wrap{padding:10px;padding-bottom:82px}
-
-      /* Tablolar → kart listeye dön */
+    @media (max-width: 520px){
       .mobile-card-list{display:block}
       .desktop-table{display:none}
       .desktop-table-wrap{display:none}
-
-      /* Personel tablosu tablo olarak kalsın (çok kolumlu) */
-      #tab-employees .desktop-table{display:table!important}
-      #tab-employees .desktop-table-wrap{display:block!important;overflow-x:auto;-webkit-overflow-scrolling:touch}
-      #tab-employees table{min-width:800px}
-
-      /* MOBİL KART */
       .mobile-item{
-        background:var(--card);
+        background:#fff;
         border:1px solid var(--line);
         border-radius:14px;
-        padding:14px;
+        padding:12px;
         margin-bottom:10px;
-        box-shadow:var(--shadow-sm);
       }
       .mobile-item-title{
-        font-weight:700;font-size:15px;
-        color:var(--text);margin-bottom:8px;
+        font-weight:800;
+        font-size:15px;
+        margin-bottom:6px;
       }
       .mobile-kv{
-        display:grid;grid-template-columns:100px 1fr;
-        gap:5px 10px;font-size:13px;margin:3px 0;
+        display:grid;
+        grid-template-columns:110px 1fr;
+        gap:4px 8px;
+        font-size:13px;
+        margin:4px 0;
       }
-      .mobile-kv .k{color:var(--muted);font-weight:600}
-      .mobile-kv .v{color:var(--text2);font-weight:500}
+      .mobile-kv .k{color:var(--muted)}
       .mobile-actions{
-        display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;
-        padding-top:10px;border-top:1px solid var(--line2);
-      }
-      .mobile-actions button{flex:1 1 auto;min-width:80px;min-height:40px;font-size:13px}
-
-      /* Panel ödeme mobil */
-      .panel-payment-mobile{display:grid;gap:8px}
-      .panel-payment-mobile .mobile-item{margin-bottom:0}
-
-      /* Panel özet → 3 sütun, küçük */
-      .panel-summary-grid{gap:6px}
-      .panel-summary-grid .summary{font-size:16px}
-      .panel-summary-grid .muted{font-size:10px}
-      .summary-card{padding:10px 12px}
-
-      /* BOTTOM NAV — telefonda göster */
-      .bottom-nav{
         display:flex;
-        position:fixed;bottom:0;left:0;right:0;
-        background:var(--card);
-        border-top:1px solid var(--line);
-        padding:8px 4px;
-        padding-bottom:calc(8px + env(safe-area-inset-bottom));
-        z-index:50;
-        box-shadow:0 -2px 12px rgba(0,0,0,.1);
+        gap:6px;
+        flex-wrap:wrap;
+        margin-top:10px;
       }
-      .bottom-nav-item{
-        flex:1;display:flex;flex-direction:column;
-        align-items:center;justify-content:center;
-        gap:3px;padding:4px 2px;
-        border:none;background:none;
-        font-size:10px;font-weight:600;
-        color:var(--muted);border-radius:10px;
-        min-height:unset;
-        transition:color .15s,background .15s;
+      .mobile-actions button{
+        flex:1 1 auto;
+        min-width:92px;
       }
-      .bottom-nav-item:hover{background:none}
-      .bottom-nav-item .nav-icon{font-size:20px;line-height:1}
-      .bottom-nav-item.active{color:var(--acc)}
-      .bottom-nav-item.active .nav-icon{
-        background:var(--acc-light);
-        border-radius:8px;padding:4px 10px;
+      .panel-payment-mobile{
+        display:grid;
+        gap:8px;
       }
-
-      /* Tab bar telefonda gizle (yerine bottom-nav) */
-      .tabs-card{display:none}
-
-      /* Header daha kompakt */
-      .card.header-card{padding:12px 14px}
-      .brand{font-size:19px}
-
-      /* Login daha iyi */
-      .login{margin:12px auto}
-      .login .card{padding:24px 18px}
-      .login-brand{font-size:26px}
-
-      /* Modal handle bar */
-      .modal::before{
-        content:'';display:block;
-        width:36px;height:4px;
-        background:var(--line);border-radius:2px;
-        margin:0 auto 14px;
+      .panel-payment-mobile .mobile-item{
+        margin-bottom:0;
       }
     }
 
-    /* PERSONEL AYLIK TABLO — İlk sütun sabit */
-    .sticky-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-    .sticky-table{width:100%;border-collapse:collapse}
-    .sticky-table thead th{padding:10px 12px;background:var(--bg);border-bottom:2px solid var(--line);text-align:left;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);white-space:nowrap}
-    .sticky-table td{padding:11px 12px;border-bottom:1px solid var(--line2);font-size:14px;vertical-align:middle;white-space:nowrap}
-    .sticky-table tbody tr:hover td{background:var(--acc-light)}
-    .sticky-table tbody tr:last-child td{border-bottom:none}
-    .sticky-table th:first-child,
-    .sticky-table td:first-child{
-      position:sticky;left:0;z-index:2;
-      background:var(--card);
-      border-right:2px solid var(--line);
-      min-width:120px;
-    }
-    .sticky-table thead th:first-child{
-      background:var(--bg);z-index:3;
-    }
-    .sticky-table tbody tr:hover td:first-child{background:var(--acc-light)}
-    .att-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-    .att-desktop-table{width:100%;border-collapse:collapse}
-    .att-desktop-table thead th{padding:10px 12px;background:var(--bg);border-bottom:2px solid var(--line);text-align:left;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
-    .att-desktop-table td{padding:10px 12px;border-bottom:1px solid var(--line2);font-size:14px;vertical-align:middle}
-    .att-desktop-table tbody tr:hover td{background:var(--acc-light)}
-    .att-mobile-list{display:none}
-    @media (max-width:640px){
-      .att-desktop-table{display:none}
-      .att-mobile-list{display:block}
-      .att-mobile-row{
-        display:grid;grid-template-columns:1fr auto;
-        grid-template-areas:"name status" "note note";
-        gap:8px 10px;padding:12px;
-        background:var(--card);border:1px solid var(--line);
-        border-radius:12px;margin-bottom:8px;align-items:center;
-      }
-      .att-name{grid-area:name;font-weight:700;font-size:14px}
-      .att-name span{display:block;font-size:11px;color:var(--muted);font-weight:500;margin-top:1px}
-      .att-status{grid-area:status}
-      .att-status select{padding:8px 10px;border-radius:10px;border:1.5px solid var(--line);font-size:14px;background:#fff;font-weight:600;width:auto;min-width:120px}
-      .att-note{grid-area:note}
-      .att-note input{padding:7px 10px;font-size:13px;border-radius:8px;border:1px solid var(--line2);background:var(--bg);color:var(--muted)}
-      .att-note input:focus{background:#fff;border-color:var(--acc2);color:var(--text)}
-    }
+  
+    /* CSV / Bar stok mobil destek */
+    .data-tools{background:#faf8f5;border:1px solid var(--line);border-radius:14px;padding:12px;margin:12px 0}
+    .data-tools .row{gap:6px}
+    @media(max-width:760px){.data-tools button{flex:1 1 140px}}
+
   </style>
 </head>
 <body>
 <div class="wrap">
   <div id="loginView" class="login">
-    <div class="card" style="padding:32px">
-      <div class="login-brand">Galata à la carte</div>
-      <div class="login-sub">Ön muhasebe & kasa yönetim paneli</div>
-      <div class="input-group">
-        <label class="form-label">E-posta</label>
-        <input id="email" type="email" placeholder="ornek@galata.com" autocomplete="email" />
+    <div class="card">
+      <div class="brand">Galata à la carte</div>
+      <div class="muted" style="margin-bottom:14px">V1 çekirdek: kasa, tedarikçi, personel puantaj</div>
+      <div class="grid">
+        <div><div class="muted">E-posta</div><input id="email" type="email" /></div>
+        <div><div class="muted">Şifre</div><input id="password" type="password" /></div>
+        <div class="row">
+          <button class="btn-primary" onclick="signIn()">Giriş Yap</button>
+          <button onclick="signOut()">Çıkış</button>
+        </div>
+        <div id="loginMsg" class="muted"></div>
       </div>
-      <div class="input-group">
-        <label class="form-label">Şifre</label>
-        <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" />
-      </div>
-      <button class="btn-primary" style="width:100%;margin-top:8px;padding:13px" onclick="signIn()">Giriş Yap</button>
-      <div id="loginMsg" class="muted" style="margin-top:12px;text-align:center"></div>
     </div>
   </div>
 
   <div id="appView" class="hidden">
-    <div class="card header-card" style="background:linear-gradient(135deg,var(--acc-light) 0%,#fff 60%);border-color:rgba(125,63,14,.2)">
+    <div class="card">
       <div class="top">
         <div>
           <div class="brand">Galata à la carte</div>
           <div class="muted">V1 çekirdek paneli</div>
         </div>
         <div class="row">
-          <span id="roleBadge" class="badge">—</span>
-          <button class="btn-sm" onclick="signOut()" style="color:var(--danger);border-color:var(--danger);background:var(--danger-bg)">Çıkış</button>
+          <span class="badge" id="roleBadge">—</span>
+          <button onclick="signOut()">Çıkış</button>
         </div>
       </div>
     </div>
@@ -452,12 +219,13 @@
       </div>
     </div>
 
-    <div class="card tabs-card">
+    <div class="card">
       <div class="tabs">
         <button class="tab active" data-tab="panel" onclick="showTab('panel', this)">Panel</button>
         <button class="tab" data-tab="suppliers" onclick="showTab('suppliers', this)">Tedarikçi</button>
         <button class="tab" data-tab="cash" onclick="showTab('cash', this)">Kasa</button>
         <button class="tab" data-tab="employees" onclick="showTab('employees', this)">Personel</button>
+        <button class="tab" data-tab="barstock" onclick="showTab('barstock', this)">Bar Stok</button>
         <button class="tab" data-tab="settings" onclick="showTab('settings', this)">Ayarlar</button>
         <button class="tab" data-tab="users" onclick="showTab('users', this)">Kullanıcılar</button>
       </div>
@@ -465,29 +233,21 @@
 
     <div id="tab-panel" class="card">
       <div class="row-between" style="margin-bottom:12px">
-        <div class="section-title">📊 Panel</div>
+        <div class="section-title">Panel</div>
         <div style="min-width:220px">
           <div class="muted">Tarih</div>
           <input id="panelDate" type="date" onchange="renderSummary()" />
         </div>
       </div>
 
-      <div class="panel-summary-grid">
-        <div class="summary-card ok">
-          <div class="muted" style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">💰 Giren</div>
-          <div id="sumCashIn" class="summary ok" style="margin-top:6px">₺0</div>
-        </div>
-        <div class="summary-card danger">
-          <div class="muted" style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">💸 Çıkan</div>
-          <div id="sumCashOut" class="summary danger" style="margin-top:6px">₺0</div>
-        </div>
-        <div class="summary-card">
-          <div class="muted" style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">📊 Net</div>
-          <div id="sumCashNet" class="summary" style="margin-top:6px">₺0</div>
-        </div>
+      <div class="grid grid-4">
+        <div><div class="muted">Giren</div><div id="sumCashIn" class="summary ok">₺0</div></div>
+        <div><div class="muted">Çıkan</div><div id="sumCashOut" class="summary danger">₺0</div></div>
+        <div><div class="muted">Net</div><div id="sumCashNet" class="summary">₺0</div></div>
+        <div><div class="muted">Aktif Personel</div><div id="sumEmployees" class="summary">0</div></div>
       </div>
 
-      <div class="card-inner" style="margin-top:14px">
+      <div class="card" style="background:#faf8f5;margin-top:14px">
         <div class="row-between">
           <div>
             <b>Ödeme Yöntemine Göre Kasa</b>
@@ -511,14 +271,14 @@
 
     <div id="tab-suppliers" class="card hidden">
       <div class="row-between">
-        <div class="section-title">🏪 Tedarikçiler</div>
-        <button class="btn-primary" onclick="createSupplier()">+ Tedarikçi Ekle</button>
+        <div class="section-title">Tedarikçiler</div>
+        <button class="btn-primary" onclick="createSupplier()">Tedarikçi Ekle</button>
       </div>
       <div class="grid grid-2" style="margin-bottom:12px">
         <input id="supplierName" placeholder="Tedarikçi adı" />
         <input id="supplierOpening" type="number" step="0.01" placeholder="Açılış bakiyesi" />
       </div>
-      <div class="card" class="card-inner" style="">
+      <div class="card" style="background:#faf8f5">
         <div class="muted">Toplam Tedarikçi Bakiyesi</div>
         <div id="supplierTotalBalance" class="summary">₺0</div>
       </div>
@@ -530,7 +290,7 @@
     </div>
 
     <div id="tab-cash" class="card hidden">
-      <div class="section-title">💵 Kasa</div>
+      <div class="section-title">Kasa</div>
       <div class="grid grid-4" style="margin-bottom:12px">
         <select id="cashType">
           <option value="cikan">Kasa Çıkan</option>
@@ -546,7 +306,15 @@
         <select id="cashEmployee" class="hidden"></select>
         <input id="cashDesc" placeholder="Açıklama" />
       </div>
-      <button class="btn-primary" style="min-width:160px" onclick="createCash()">+ Kasa Kaydı Ekle</button>
+      <button class="btn-primary" onclick="createCash()">Kasa Kaydı Ekle</button>
+      <div class="data-tools">
+        <b>Kasa Veri</b>
+        <div class="row" style="margin-top:10px;flex-wrap:wrap">
+          <button onclick="exportCSV('cash')">Kasa Hareketlerini İndir</button>
+          <button onclick="downloadTemplate('cash')">Kasa Şablonu</button>
+          <button onclick="triggerImport('cash')">Kasa Yükle</button>
+        </div>
+      </div>
       <div id="cashMsg" class="muted" style="margin-top:10px"></div>
       <table class="desktop-table" style="margin-top:12px">
         <thead><tr><th>Tarih</th><th>Tip</th><th>Tutar</th><th>Ödeme Yöntemi</th><th>Departman</th><th>Bağlantı</th><th>Açıklama</th><th>İşlem</th></tr></thead>
@@ -558,10 +326,10 @@
     <div id="tab-employees" class="card hidden">
       <div class="row-between">
         <div>
-          <div class="section-title">👥 Personel & Puantaj</div>
+          <div class="section-title">Personel & Puantaj</div>
           <div class="muted">Tarihe göre günlük puantaj gir, geçmiş günleri kontrol et.</div>
         </div>
-        <button class="btn-primary" onclick="createEmployee()">+ Personel Ekle</button>
+        <button class="btn-primary" onclick="createEmployee()">Personel Ekle</button>
       </div>
 
       <div class="grid grid-3" style="margin-bottom:12px">
@@ -573,7 +341,19 @@
         <input id="employeeIban" placeholder="IBAN" />
       </div>
 
-      <div class="card" class="card-inner" style="">
+      <div class="data-tools">
+        <b>Personel Veri</b>
+        <div class="row" style="margin-top:10px;flex-wrap:wrap">
+          <button onclick="exportCSV('employees')">Personelleri İndir</button>
+          <button onclick="exportCSV('attendance')">Puantajı İndir</button>
+          <button onclick="downloadTemplate('employees')">Personel Şablonu</button>
+          <button onclick="downloadTemplate('attendance')">Puantaj Şablonu</button>
+          <button onclick="triggerImport('employees')">Personel Yükle</button>
+          <button onclick="triggerImport('attendance')">Puantaj Yükle</button>
+        </div>
+      </div>
+
+      <div class="card" style="background:#faf8f5">
         <div class="row-between" style="margin-bottom:12px">
           <div>
             <b>Günlük Puantaj</b>
@@ -598,21 +378,17 @@
           <button class="btn-primary" onclick="saveAttendanceForDate()">Puantajı Kaydet</button>
         </div>
 
-        <div class="att-table-wrap scroll-x">
-          <table class="att-desktop-table">
-            <thead>
-              <tr>
-                <th>Personel</th>
-                <th>Görev</th>
-                <th>Durum</th>
-                <th>Not</th>
-              </tr>
-            </thead>
-            <tbody id="attendanceTable"></tbody>
-          </table>
-        </div>
-        <!-- Mobil kart versiyonu -->
-        <div id="attendanceMobileList" class="att-mobile-list"></div>
+        <table class="desktop-table">
+          <thead>
+            <tr>
+              <th>Personel</th>
+              <th>Görev</th>
+              <th>Durum</th>
+              <th>Not</th>
+            </tr>
+          </thead>
+          <tbody id="attendanceTable"></tbody>
+        </table>
 
         <div class="card" style="margin-top:12px;background:#fff">
           <b>Seçili Tarih Özeti</b>
@@ -632,7 +408,7 @@
             <div class="muted" style="font-size:11px">İçinde bulunulan ayda bugün dahil bugüne kadar sayılır.</div>
           </div>
         </div>
-        <div class="sticky-table-wrap"><table class="sticky-table" style="margin-top:10px">
+        <div class="scroll-x"><table class="desktop-table" style="margin-top:10px">
           <thead>
             <tr>
               <th>Ad</th>
@@ -658,9 +434,75 @@
       </div>
     </div>
 
+
+    <div id="tab-barstock" class="card hidden">
+      <div class="row-between">
+        <div>
+          <div class="section-title">Bar Stok</div>
+          <div class="muted">Bar ürünleri için stok kartı, giriş/çıkış, fire, ikram ve sayım takibi.</div>
+        </div>
+      </div>
+
+      <div class="card" style="background:#faf8f5">
+        <b>Stok Kartı Ekle</b>
+        <div class="grid grid-4" style="margin-top:12px">
+          <input id="stockItemName" placeholder="Ürün adı" />
+          <input id="stockItemCategory" placeholder="Kategori örn: Rakı, Şarap" />
+          <input id="stockItemUnit" placeholder="Birim örn: adet, cl, şişe" value="adet" />
+          <input id="stockItemBottleSize" type="number" step="0.01" placeholder="Şişe CL opsiyonel" />
+          <input id="stockItemMin" type="number" step="0.01" placeholder="Min stok" />
+          <button class="btn-primary" onclick="createStockItem()">Stok Kartı Ekle</button>
+        </div>
+      </div>
+
+      <div class="card" style="background:#fff">
+        <b>Stok Hareketi Ekle</b>
+        <div class="grid grid-4" style="margin-top:12px">
+          <select id="stockMoveItem"></select>
+          <select id="stockMoveType">
+            <option value="giris">Giriş</option>
+            <option value="cikis">Çıkış</option>
+            <option value="sayim">Sayım</option>
+            <option value="fire">Fire</option>
+            <option value="ikram">İkram</option>
+          </select>
+          <input id="stockMoveQty" type="number" step="0.01" placeholder="Miktar" />
+          <input id="stockMoveDate" type="date" />
+          <input id="stockMoveNote" placeholder="Not" />
+          <button class="btn-primary" onclick="createStockMovement()">Hareket Ekle</button>
+        </div>
+      </div>
+
+      <div class="data-tools">
+        <b>Bar Stok Veri</b>
+        <div class="row" style="margin-top:10px;flex-wrap:wrap">
+          <button onclick="exportCSV('bar_items')">Stok Kartları İndir</button>
+          <button onclick="exportCSV('bar_movements')">Stok Hareketleri İndir</button>
+          <button onclick="downloadTemplate('bar_items')">Kart Şablonu</button>
+          <button onclick="downloadTemplate('bar_movements')">Hareket Şablonu</button>
+          <button onclick="triggerImport('bar_items')">Kart Yükle</button>
+          <button onclick="triggerImport('bar_movements')">Hareket Yükle</button>
+        </div>
+      </div>
+
+      <div class="card" style="background:#fff">
+        <b>Güncel Bar Stok</b>
+        <div class="desktop-table-wrap">
+          <table style="margin-top:10px">
+            <thead>
+              <tr>
+                <th>Ürün</th><th>Kategori</th><th>Birim</th><th>Min</th><th>Giriş</th><th>Çıkış</th><th>Sayım</th><th>Mevcut</th><th>Durum</th><th>İşlem</th>
+              </tr>
+            </thead>
+            <tbody id="barStockTable"></tbody>
+          </table>
+        </div>
+        <div id="barStockMobile" class="mobile-card-list"></div>
+      </div>
+    </div>
     <div id="tab-settings" class="card hidden">
-      <div class="section-title">⚙️ Ayarlar</div>
-      <div class="card" class="card-inner" style="">
+      <div class="section-title">Ayarlar</div>
+      <div class="card" style="background:#faf8f5">
         <div class="row-between">
           <div>
             <b>Ödeme Yöntemleri</b>
@@ -677,7 +519,7 @@
         </table>
       </div>
 
-      <div class="card" class="card-inner" style="">
+      <div class="card" style="background:#faf8f5">
         <div class="row-between">
           <div>
             <b>Departmanlar</b>
@@ -701,10 +543,10 @@
 
 
     <div id="tab-users" class="card hidden">
-      <div class="section-title">🔐 Kullanıcılar & Yetkiler</div>
+      <div class="section-title">Kullanıcılar & Yetkiler</div>
       <div class="muted" style="margin-bottom:12px">Önce kullanıcıyı Supabase Authentication > Users bölümünde oluştur. Sonra buradan işletmeye bağla ve göreceği panelleri seç.</div>
 
-      <div class="card" class="card-inner" style="">
+      <div class="card" style="background:#faf8f5">
         <b>Yeni Kullanıcı Bağla</b>
         <div class="grid grid-4" style="margin-top:12px">
           <input id="newUserEmail" type="email" placeholder="E-posta" />
@@ -753,7 +595,7 @@
           <div class="modal-title">Kasa Kaydı Düzenle</div>
           <div class="muted">Yanlış girilen kasa hareketini silmeden düzeltebilirsin.</div>
         </div>
-        <button class="btn-sm" onclick="closeCashEdit()">✕ Kapat</button>
+        <button onclick="closeCashEdit()">Kapat</button>
       </div>
 
       <input type="hidden" id="editCashId" />
@@ -807,7 +649,7 @@
           <div id="employeeEditTitle" class="modal-title">Personel Düzenle</div>
           <div id="employeeEditSummary" class="muted">Personel kartı ve seçili ayın gün gün puantaj düzenlemesi.</div>
         </div>
-        <button class="btn-sm" onclick="closeEmployeeEdit()">✕ Kapat</button>
+        <button onclick="closeEmployeeEdit()">Kapat</button>
       </div>
 
       <input type="hidden" id="editEmployeeId" />
@@ -850,7 +692,7 @@
         </div>
       </div>
 
-      <div class="card" class="card-inner" style="">
+      <div class="card" style="background:#faf8f5">
         <div class="row-between" style="margin-bottom:10px">
           <div>
             <b>Seçili Ay Puantajı</b>
@@ -912,7 +754,7 @@
           <div id="movementTitle" class="modal-title">Tedarikçi Hareketleri</div>
           <div id="movementSummary" class="muted"></div>
         </div>
-        <button class="btn-sm" onclick="closeMovements()">✕ Kapat</button>
+        <button onclick="closeMovements()">Kapat</button>
       </div>
       <table class="desktop-table">
         <thead>
@@ -930,41 +772,9 @@
       </table>
     </div>
   </div>
-
-  <!-- BOTTOM NAV — sadece telefonda görünür -->
-  <nav class="bottom-nav" id="bottomNav">
-    <button class="bottom-nav-item active" id="bnav-panel" onclick="showTab('panel',this);updateBottomNav('panel')">
-      <span class="nav-icon">📊</span>Panel
-    </button>
-    <button class="bottom-nav-item" id="bnav-cash" onclick="showTab('cash',this);updateBottomNav('cash')">
-      <span class="nav-icon">💵</span>Kasa
-    </button>
-    <button class="bottom-nav-item" id="bnav-suppliers" onclick="showTab('suppliers',this);updateBottomNav('suppliers')">
-      <span class="nav-icon">🏪</span>Tedarikçi
-    </button>
-    <button class="bottom-nav-item" id="bnav-employees" onclick="showTab('employees',this);updateBottomNav('employees')">
-      <span class="nav-icon">👥</span>Personel
-    </button>
-    <button class="bottom-nav-item" id="bnav-more" onclick="toggleMoreMenu()">
-      <span class="nav-icon">⋯</span>Daha
-    </button>
-  </nav>
-
-  <!-- MORE MENU — telefonda ayarlar ve kullanıcılar için -->
-  <div id="moreMenu" style="display:none;position:fixed;bottom:72px;right:10px;left:10px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 -2px 20px rgba(0,0,0,.15);padding:8px;z-index:60">
-    <button style="width:100%;justify-content:flex-start;gap:12px;border:none;font-size:15px;padding:13px 14px;border-radius:10px" onclick="showTab('settings',document.querySelector('.tab[data-tab=settings]'));updateBottomNav('settings');toggleMoreMenu()">
-      ⚙️ Ayarlar
-    </button>
-    <button style="width:100%;justify-content:flex-start;gap:12px;border:none;font-size:15px;padding:13px 14px;border-radius:10px" onclick="showTab('users',document.querySelector('.tab[data-tab=users]'));updateBottomNav('users');toggleMoreMenu()">
-      🔐 Kullanıcılar
-    </button>
-    <div style="height:1px;background:var(--line2);margin:4px 0"></div>
-    <button style="width:100%;justify-content:flex-start;gap:12px;border:none;font-size:15px;padding:13px 14px;border-radius:10px;color:var(--danger)" onclick="signOut();toggleMoreMenu()">
-      🚪 Çıkış Yap
-    </button>
-  </div>
 </div>
 
+<input id="csvImportInput" type="file" accept=".csv,text/csv" class="hidden" />
 <script>
 const SUPABASE_URL = "https://defwmczznunqllgouims.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlZndtY3p6bnVucWxsZ291aW1zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzODY1MDcsImV4cCI6MjA4OTk2MjUwN30.1dFwTQk0aJOHuWap-myRmtQie5QXhUhMn7YZkqgSFBo";
@@ -990,6 +800,8 @@ let state = {
   users: [],
   userPermissions: [],
   employeePrivate: [],
+  barStockItems: [],
+  barStockMovements: [],
   departments: [],
   attendanceRecords: [],
   monthlyAttendance: []
@@ -1010,10 +822,10 @@ function isAdmin(){
 }
 
 const roleDefaults = {
-  admin:    { can_panel:true, can_cash:true, can_suppliers:true, can_employees:true, can_settings:true, can_users:true, can_cash_edit:true, can_cash_delete:true, can_supplier_edit:true, can_employee_private:true },
-  yonetici: { can_panel:true, can_cash:true, can_suppliers:true, can_employees:true, can_settings:true, can_users:false, can_cash_edit:true, can_cash_delete:true, can_supplier_edit:true, can_employee_private:false },
-  kasa:     { can_panel:true, can_cash:true, can_suppliers:false, can_employees:false, can_settings:false, can_users:false, can_cash_edit:false, can_cash_delete:false, can_supplier_edit:false, can_employee_private:false },
-  muhasebe: { can_panel:true, can_cash:true, can_suppliers:true, can_employees:false, can_settings:false, can_users:false, can_cash_edit:false, can_cash_delete:false, can_supplier_edit:true, can_employee_private:false }
+  admin:    { can_panel:true, can_cash:true, can_suppliers:true, can_employees:true, can_bar_stock:true, can_settings:true, can_users:true, can_cash_edit:true, can_cash_delete:true, can_supplier_edit:true, can_employee_private:true, can_bar_stock:true },
+  yonetici: { can_panel:true, can_cash:true, can_suppliers:true, can_employees:true, can_bar_stock:true, can_settings:true, can_users:false, can_cash_edit:true, can_cash_delete:true, can_supplier_edit:true, can_employee_private:false, can_bar_stock:false },
+  kasa:     { can_panel:true, can_cash:true, can_suppliers:false, can_employees:false, can_bar_stock:false, can_settings:false, can_users:false, can_cash_edit:false, can_cash_delete:false, can_supplier_edit:false, can_employee_private:false, can_bar_stock:false },
+  muhasebe: { can_panel:true, can_cash:true, can_suppliers:true, can_employees:false, can_bar_stock:false, can_settings:false, can_users:false, can_cash_edit:false, can_cash_delete:false, can_supplier_edit:true, can_employee_private:false, can_bar_stock:false }
 };
 
 function hasPermission(key){
@@ -1029,42 +841,10 @@ function tabPermission(tabName){
     suppliers: 'can_suppliers',
     employees: 'can_employees',
     settings: 'can_settings',
-    users: 'can_users'
+    users: 'can_users',
+    barstock: 'can_bar_stock'
   };
   return hasPermission(map[tabName]);
-}
-
-
-function updateBottomNav(tab){
-  document.querySelectorAll('.bottom-nav-item').forEach(b=>b.classList.remove('active'));
-  var btn = document.getElementById('bnav-'+tab);
-  if(btn) btn.classList.add('active');
-  // More menüyü kapat
-  var mm = document.getElementById('moreMenu');
-  if(mm) mm.style.display='none';
-}
-
-function toggleMoreMenu(){
-  var mm = document.getElementById('moreMenu');
-  if(!mm) return;
-  mm.style.display = mm.style.display==='none' ? 'block' : 'none';
-}
-
-// More menü dışına tıklayınca kapat
-document.addEventListener('click', function(e){
-  var mm = document.getElementById('moreMenu');
-  if(mm && mm.style.display!=='none'){
-    if(!mm.contains(e.target) && !e.target.closest('#bnav-more')) mm.style.display='none';
-  }
-});
-
-// Bottom nav yetki kontrolü — gizlenecek butonlar
-function applyBottomNavPermissions(){
-  var map = {cash:'can_cash',suppliers:'can_suppliers',employees:'can_employees'};
-  Object.entries(map).forEach(([tab,perm])=>{
-    var btn = document.getElementById('bnav-'+tab);
-    if(btn) btn.style.display = hasPermission(perm) ? '' : 'none';
-  });
 }
 
 function applyTabPermissions(){
@@ -1080,7 +860,6 @@ function applyTabPermissions(){
     btn.classList.toggle('hidden', !tabPermission(tab));
   });
 
-  applyBottomNavPermissions();
   const active = document.querySelector('.tab.active:not(.hidden)');
   if(!active){
     const first = document.querySelector('.tab[data-tab]:not(.hidden)');
@@ -1218,11 +997,25 @@ async function loadCore(){
     await loadUsersForAdmin();
   }
 
+
+  if(hasPermission('can_bar_stock')){
+    const [{data: stockItems, error: stockItemsError},{data: stockMoves, error: stockMovesError}] = await Promise.all([
+      sb.from('bar_stock_items').select('*').eq('business_id', bid).order('name'),
+      sb.from('bar_stock_movements').select('*').eq('business_id', bid).order('movement_date', {ascending:false}).limit(1000)
+    ]);
+    if(!stockItemsError) state.barStockItems = stockItems || [];
+    if(!stockMovesError) state.barStockMovements = stockMoves || [];
+  } else {
+    state.barStockItems = [];
+    state.barStockMovements = [];
+  }
+
   renderSuppliers();
   renderEmployees();
   renderCashLinkSelects();
   renderSettings();
   renderUsers();
+  renderBarStock();
   renderCash();
   renderSummary();
 }
@@ -1330,6 +1123,113 @@ function renderSettings(){
 }
 
 
+
+
+
+function csvEscape(value){
+  if(value === null || value === undefined) return '';
+  const s = String(value).replace(/\r?\n/g, ' ');
+  if(/[",;\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+function toCSV(rows, headers){
+  const sep = ';';
+  return '\ufeff' + [headers.join(sep), ...rows.map(row => headers.map(h => csvEscape(row[h])).join(sep))].join('\n');
+}
+function parseCSV(text){
+  const lines = text.replace(/^\ufeff/, '').split(/\r?\n/).filter(Boolean);
+  if(!lines.length) return [];
+  const sep = lines[0].includes(';') ? ';' : ',';
+  const headers = lines[0].split(sep).map(x=>x.trim());
+  return lines.slice(1).map(line => {
+    const parts = line.split(sep).map(x=>x.trim().replace(/^"|"$/g,'').replace(/""/g,'"'));
+    const obj = {}; headers.forEach((h,i)=>obj[h]=parts[i]||''); return obj;
+  }).filter(r=>Object.values(r).some(Boolean));
+}
+function downloadFile(filename, content, mime='text/csv;charset=utf-8'){
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+function todayStamp(){ return new Date().toISOString().slice(0,10); }
+function findByName(list, name, field='name'){
+  return list.find(x => String(x[field]||'').toLocaleLowerCase('tr-TR') === String(name||'').toLocaleLowerCase('tr-TR'));
+}
+function boolVal(v){ const s=String(v??'').toLowerCase(); return ['true','1','evet','aktif'].includes(s); }
+
+function exportCSV(kind){
+  const data = exportData(kind);
+  if(!data) return alert('Veri hazırlanamadı.');
+  downloadFile(`${kind}_${todayStamp()}.csv`, toCSV(data.rows, data.headers));
+}
+function exportData(kind){
+  const map = {
+    suppliers: { headers:['name','phone','note','opening_balance','is_active'], rows: state.suppliers.map(s=>({name:s.name, phone:s.phone||'', note:s.note||'', opening_balance:s.opening_balance||0, is_active:s.is_active})) },
+    supplier_movements: { headers:['supplier_name','type','movement_date','amount','note'], rows: state.supplierMovements.map(m=>({supplier_name:state.suppliers.find(s=>s.id===m.supplier_id)?.name||'', type:m.type, movement_date:m.movement_date, amount:m.amount, note:m.note||''})) },
+    cash: { headers:['tx_date','type','amount','payment_method','department','supplier_name','employee_name','description'], rows: state.cash.map(c=>({tx_date:c.tx_date, type:c.type, amount:c.amount, payment_method:state.paymentMethods.find(x=>x.id===c.payment_method_id)?.name||'', department:state.departments.find(x=>x.id===c.department_id)?.name||'', supplier_name:state.suppliers.find(x=>x.id===c.supplier_id)?.name||'', employee_name:state.employees.find(x=>x.id===c.employee_id)?.full_name||'', description:c.description||''})) },
+    employees: { headers:['full_name','phone','role_title','hire_date','termination_date','is_active'], rows: state.employees.map(e=>({full_name:e.full_name, phone:e.phone||'', role_title:e.role_title||'', hire_date:e.hire_date||'', termination_date:e.termination_date||'', is_active:e.is_active})) },
+    attendance: { headers:['employee_name','attendance_date','status','note'], rows: (state.monthlyAttendance||state.attendanceRecords||[]).map(a=>({employee_name:state.employees.find(e=>e.id===a.employee_id)?.full_name||'', attendance_date:a.attendance_date, status:a.status, note:a.note||''})) },
+    bar_items: { headers:['name','category','unit','bottle_size_cl','min_stock','is_active'], rows: state.barStockItems.map(i=>({name:i.name, category:i.category||'', unit:i.unit||'adet', bottle_size_cl:i.bottle_size_cl||'', min_stock:i.min_stock||0, is_active:i.is_active})) },
+    bar_movements: { headers:['item_name','movement_date','type','quantity','note'], rows: state.barStockMovements.map(m=>({item_name:state.barStockItems.find(i=>i.id===m.item_id)?.name||'', movement_date:m.movement_date, type:m.type, quantity:m.quantity, note:m.note||''})) }
+  };
+  return map[kind];
+}
+function downloadTemplate(kind){
+  const samples = {
+    suppliers:{headers:['name','phone','note','opening_balance','is_active'], rows:[{name:'X Gıda',phone:'',note:'',opening_balance:0,is_active:true}]},
+    supplier_movements:{headers:['supplier_name','type','movement_date','amount','note'], rows:[{supplier_name:'X Gıda',type:'alis',movement_date:today(),amount:1000,note:''}]},
+    cash:{headers:['tx_date','type','amount','payment_method','department','supplier_name','employee_name','description'], rows:[{tx_date:today(),type:'cikan',amount:1000,payment_method:'Nakit',department:'Tedarikçi',supplier_name:'X Gıda',employee_name:'',description:''}]},
+    employees:{headers:['full_name','phone','role_title','hire_date','termination_date','is_active'], rows:[{full_name:'Personel Adı',phone:'',role_title:'Garson',hire_date:today(),termination_date:'',is_active:true}]},
+    attendance:{headers:['employee_name','attendance_date','status','note'], rows:[{employee_name:'Personel Adı',attendance_date:today(),status:'calisti',note:''}]},
+    bar_items:{headers:['name','category','unit','bottle_size_cl','min_stock','is_active'], rows:[{name:'Yeni Rakı 70cl',category:'Rakı',unit:'şişe',bottle_size_cl:70,min_stock:3,is_active:true}]},
+    bar_movements:{headers:['item_name','movement_date','type','quantity','note'], rows:[{item_name:'Yeni Rakı 70cl',movement_date:today(),type:'giris',quantity:1,note:''}]}
+  };
+  const t = samples[kind]; if(!t) return alert('Şablon yok.');
+  downloadFile(`${kind}_sablon.csv`, toCSV(t.rows,t.headers));
+}
+let pendingImportKind=null;
+function triggerImport(kind){ pendingImportKind=kind; const input=byId('csvImportInput'); input.value=''; input.onchange=handleCSVImport; input.click(); }
+async function handleCSVImport(e){
+  try{ const file=e.target.files?.[0]; if(!file) return; const rows=parseCSV(await file.text()); await importRows(pendingImportKind, rows); alert('Yükleme tamamlandı.'); await loadCore(); }
+  catch(err){ alert('Yükleme hatası: '+(err?.message||err)); }
+}
+async function importRows(kind, rows){
+  if(kind==='suppliers'){ const payload=rows.map(r=>({business_id:state.activeBusinessId,name:r.name,phone:r.phone||null,note:r.note||null,opening_balance:Number(r.opening_balance||0),is_active:r.is_active===''?true:boolVal(r.is_active),created_by:state.session.user.id})).filter(x=>x.name); const {error}=await sb.from('suppliers').upsert(payload,{onConflict:'business_id,name'}); if(error) throw error; return; }
+  if(kind==='supplier_movements'){ const payload=rows.map(r=>{const s=findByName(state.suppliers,r.supplier_name); return s?{business_id:state.activeBusinessId,supplier_id:s.id,type:r.type||'alis',movement_date:r.movement_date||today(),amount:Number(r.amount||0),note:r.note||null,created_by:state.session.user.id}:null;}).filter(Boolean); const {error}=await sb.from('supplier_movements').insert(payload); if(error) throw error; return; }
+  if(kind==='cash'){ const payload=rows.map(r=>{const pm=findByName(state.paymentMethods,r.payment_method), dep=findByName(state.departments,r.department), sup=r.supplier_name?findByName(state.suppliers,r.supplier_name):null, emp=r.employee_name?findByName(state.employees,r.employee_name,'full_name'):null; return {business_id:state.activeBusinessId,tx_date:r.tx_date||today(),type:r.type||'cikan',amount:Number(r.amount||0),payment_method_id:pm?.id||null,department_id:dep?.id||null,transaction_type_id:dep?.id||null,supplier_id:sup?.id||null,employee_id:emp?.id||null,description:r.description||null,created_by:state.session.user.id};}).filter(x=>x.amount>0); const {error}=await sb.from('cash_transactions').insert(payload); if(error) throw error; return; }
+  if(kind==='employees'){ const payload=rows.map(r=>({business_id:state.activeBusinessId,full_name:r.full_name,phone:r.phone||null,role_title:r.role_title||null,hire_date:r.hire_date||null,termination_date:r.termination_date||null,is_active:r.is_active===''?true:boolVal(r.is_active),created_by:state.session.user.id})).filter(x=>x.full_name); const {error}=await sb.from('employees').upsert(payload,{onConflict:'business_id,full_name'}); if(error) throw error; return; }
+  if(kind==='attendance'){ const payload=rows.map(r=>{const emp=findByName(state.employees,r.employee_name,'full_name'); return emp?{business_id:state.activeBusinessId,employee_id:emp.id,attendance_date:r.attendance_date||today(),status:r.status||'calisti',note:r.note||null,created_by:state.session.user.id}:null;}).filter(Boolean); const {error}=await sb.from('attendance_records').upsert(payload,{onConflict:'employee_id,attendance_date'}); if(error) throw error; return; }
+  if(kind==='bar_items'){ const payload=rows.map(r=>({business_id:state.activeBusinessId,name:r.name,category:r.category||null,unit:r.unit||'adet',bottle_size_cl:r.bottle_size_cl?Number(r.bottle_size_cl):null,min_stock:Number(r.min_stock||0),is_active:r.is_active===''?true:boolVal(r.is_active),created_by:state.session.user.id})).filter(x=>x.name); const {error}=await sb.from('bar_stock_items').upsert(payload,{onConflict:'business_id,name'}); if(error) throw error; return; }
+  if(kind==='bar_movements'){ const payload=rows.map(r=>{const item=findByName(state.barStockItems,r.item_name); return item?{business_id:state.activeBusinessId,item_id:item.id,movement_date:r.movement_date||today(),type:r.type||'giris',quantity:Number(r.quantity||0),note:r.note||null,created_by:state.session.user.id}:null;}).filter(x=>x&&x.quantity>0); const {error}=await sb.from('bar_stock_movements').insert(payload); if(error) throw error; return; }
+}
+function stockQuantity(itemId){
+  let running=0;
+  state.barStockMovements.filter(m=>m.item_id===itemId).sort((a,b)=>String(a.movement_date).localeCompare(String(b.movement_date))).forEach(m=>{const q=Number(m.quantity||0); if(m.type==='sayim') running=q; else if(m.type==='giris') running+=q; else if(['cikis','fire','ikram'].includes(m.type)) running-=q;});
+  return running;
+}
+function renderBarStock(){
+  const tbody=byId('barStockTable'), select=byId('stockMoveItem'), mobile=byId('barStockMobile');
+  if(select){ select.innerHTML='<option value="">Ürün seç</option>'; state.barStockItems.filter(i=>i.is_active).forEach(i=>{const o=document.createElement('option');o.value=i.id;o.textContent=i.name;select.appendChild(o);}); }
+  if(byId('stockMoveDate') && !byId('stockMoveDate').value) byId('stockMoveDate').value=today();
+  if(tbody) tbody.innerHTML=''; if(mobile) mobile.innerHTML='';
+  if(!state.barStockItems.length){ if(tbody) tbody.innerHTML='<tr><td colspan="10" class="muted">Bar stok kartı yok.</td></tr>'; return; }
+  state.barStockItems.forEach(item=>{ const movements=state.barStockMovements.filter(m=>m.item_id===item.id), giris=movements.filter(m=>m.type==='giris').reduce((a,m)=>a+Number(m.quantity||0),0), out=movements.filter(m=>['cikis','fire','ikram'].includes(m.type)).reduce((a,m)=>a+Number(m.quantity||0),0), sayim=movements.filter(m=>m.type==='sayim').sort((a,b)=>String(b.movement_date).localeCompare(String(a.movement_date)))[0]?.quantity ?? '', current=stockQuantity(item.id), status=current<=Number(item.min_stock||0)?'Kritik':'Normal'; if(tbody){const tr=document.createElement('tr'); tr.innerHTML=`<td><b>${item.name}</b></td><td>${item.category||''}</td><td>${item.unit||''}</td><td>${item.min_stock||0}</td><td>${giris}</td><td>${out}</td><td>${sayim}</td><td><b>${current}</b></td><td>${status}</td><td><button class="mini" onclick="deleteStockItem('${item.id}')">Sil</button></td>`; tbody.appendChild(tr);} });
+}
+async function createStockItem(){
+  const name=byId('stockItemName').value.trim(); if(!name) return alert('Ürün adı gerekli.');
+  const {error}=await sb.from('bar_stock_items').upsert({business_id:state.activeBusinessId,name,category:byId('stockItemCategory').value.trim()||null,unit:byId('stockItemUnit').value.trim()||'adet',bottle_size_cl:byId('stockItemBottleSize').value?Number(byId('stockItemBottleSize').value):null,min_stock:Number(byId('stockItemMin').value||0),created_by:state.session.user.id},{onConflict:'business_id,name'});
+  if(error) return alert(error.message); ['stockItemName','stockItemCategory','stockItemBottleSize','stockItemMin'].forEach(id=>byId(id).value=''); await loadCore();
+}
+async function createStockMovement(){
+  const item_id=byId('stockMoveItem').value, quantity=Number(byId('stockMoveQty').value||0); if(!item_id) return alert('Ürün seç.'); if(!quantity||quantity<0) return alert('Geçerli miktar gir.');
+  const {error}=await sb.from('bar_stock_movements').insert({business_id:state.activeBusinessId,item_id,type:byId('stockMoveType').value,quantity,movement_date:byId('stockMoveDate').value||today(),note:byId('stockMoveNote').value.trim()||null,created_by:state.session.user.id});
+  if(error) return alert(error.message); byId('stockMoveQty').value=''; byId('stockMoveNote').value=''; await loadCore();
+}
+async function deleteStockItem(id){
+  if(!confirm('Bu stok kartını ve hareketlerini silmek istiyor musun?')) return;
+  const {error}=await sb.from('bar_stock_items').delete().eq('id',id).eq('business_id',state.activeBusinessId);
+  if(error) return alert(error.message); await loadCore();
+}
 
 
 async function loadUsersForAdmin(){
@@ -1527,8 +1427,7 @@ function renderSummary(){
   byId('sumCashNet').textContent = money(net);
   byId('sumCashNet').classList.toggle('ok', net >= 0);
   byId('sumCashNet').classList.toggle('danger', net < 0);
-  if(byId('sumEmployees')) byId('sumEmployees').textContent = state.employees.length;
-  if(byId('employeeActiveCount')) byId('employeeActiveCount').textContent = state.employees.length;
+  byId('sumEmployees').textContent = state.employees.length;
 
   const supplierTotal = state.supplierBalances.reduce((a,x)=>a+Number(x.balance||0),0);
   if(byId('supplierTotalBalance')) byId('supplierTotalBalance').textContent = money(supplierTotal);
@@ -1851,7 +1750,6 @@ function monthlySummaryForEmployee(employeeId){
 }
 
 function renderEmployees(){
-  if(byId('employeeActiveCount')) byId('employeeActiveCount').textContent = state.employees.length;
   const tbody = byId('employeeTable');
   tbody.innerHTML = '';
 
@@ -1890,22 +1788,17 @@ function renderEmployees(){
 
 function renderAttendanceTable(){
   const tbody = byId('attendanceTable');
-  const mobileList = byId('attendanceMobileList');
   if(!tbody) return;
   tbody.innerHTML = '';
-  if(mobileList) mobileList.innerHTML = '';
 
   if(!state.employees.length){
     tbody.innerHTML = '<tr><td colspan="4" class="muted">Aktif personel yok.</td></tr>';
-    if(mobileList) mobileList.innerHTML = '<div class="muted" style="padding:12px">Aktif personel yok.</div>';
     renderAttendanceSummary();
     return;
   }
 
   state.employees.forEach(e => {
     const rec = state.attendanceRecords.find(r => r.employee_id === e.id) || {};
-
-    // MASAÜSTÜ SATIR
     const tr = document.createElement('tr');
     tr.dataset.employeeId = e.id;
     tr.innerHTML = `
@@ -1915,19 +1808,6 @@ function renderAttendanceTable(){
       <td><input data-field="note" value="${rec.note || ''}" placeholder="Not" /></td>
     `;
     tbody.appendChild(tr);
-
-    // MOBİL KART
-    if(mobileList){
-      const div = document.createElement('div');
-      div.className = 'att-mobile-row';
-      div.dataset.employeeId = e.id;
-      div.innerHTML = `
-        <div class="att-name">${e.full_name}<span>${e.role_title || ''}</span></div>
-        <div class="att-status"><select data-field="status">${attendanceOptions(rec.status || '')}</select></div>
-        <div class="att-note"><input data-field="note" value="${rec.note || ''}" placeholder="Not (opsiyonel)" /></div>
-      `;
-      mobileList.appendChild(div);
-    }
   });
 
   renderAttendanceSummary();
@@ -2004,25 +1884,17 @@ async function loadMonthlyAttendance(){
 }
 
 
-// Hem masaüstü tablo hem mobil kartları seç
-function attAllRows(){
-  var rows = [];
-  document.querySelectorAll('#attendanceTable tr[data-employee-id]').forEach(tr => rows.push(tr));
-  document.querySelectorAll('#attendanceMobileList .att-mobile-row[data-employee-id]').forEach(d => rows.push(d));
-  return rows;
-}
-
 function setAllAttendance(status){
-  attAllRows().forEach(el => {
-    const select = el.querySelector('select[data-field="status"]');
+  document.querySelectorAll('#attendanceTable tr[data-employee-id]').forEach(tr => {
+    const select = tr.querySelector('select[data-field="status"]');
     if(select) select.value = status;
   });
 }
 
 function clearAllAttendance(){
-  attAllRows().forEach(el => {
-    const select = el.querySelector('select[data-field="status"]');
-    const note = el.querySelector('input[data-field="note"]');
+  document.querySelectorAll('#attendanceTable tr[data-employee-id]').forEach(tr => {
+    const select = tr.querySelector('select[data-field="status"]');
+    const note = tr.querySelector('input[data-field="note"]');
     if(select) select.value = '';
     if(note) note.value = '';
   });
@@ -2033,23 +1905,23 @@ async function saveAttendanceForDate(){
     if(!state.activeBusinessId) throw new Error('Aktif işletme yok.');
     const selectedDate = byId('attendanceDate')?.value || today();
 
-    // Değerleri önce masaüstü tablodan, yoksa mobil karttan oku
-    const employeeValues = {};
-    attAllRows().forEach(el => {
-      const eid = el.dataset.employeeId;
-      const status = el.querySelector('select[data-field="status"]')?.value || '';
-      const note = el.querySelector('input[data-field="note"]')?.value || null;
-      if(status) employeeValues[eid] = { status, note };
-    });
+    const rows = [];
+    document.querySelectorAll('#attendanceTable tr[data-employee-id]').forEach(tr => {
+      const employee_id = tr.dataset.employeeId;
+      const status = tr.querySelector('select[data-field="status"]')?.value || '';
+      const note = tr.querySelector('input[data-field="note"]')?.value || null;
 
-    const rows = Object.entries(employeeValues).map(([employee_id, vals]) => ({
-      business_id: state.activeBusinessId,
-      employee_id,
-      attendance_date: selectedDate,
-      status: vals.status,
-      note: vals.note,
-      created_by: state.session.user.id
-    }));
+      if(status){
+        rows.push({
+          business_id: state.activeBusinessId,
+          employee_id,
+          attendance_date: selectedDate,
+          status,
+          note,
+          created_by: state.session.user.id
+        });
+      }
+    });
 
     if(!rows.length) throw new Error('Kaydedilecek puantaj seçilmedi.');
 
