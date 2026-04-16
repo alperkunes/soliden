@@ -362,6 +362,26 @@
 
     /* PERSONEL AYLIK TABLO — İlk sütun sabit */
     .sticky-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    /* HAREKETLERMOBİL */
+    .movement-mobile-list{display:none}
+    @media(max-width:640px){
+      .sticky-table-wrap .sticky-table{display:none}
+      .movement-mobile-list{display:block}
+      .movement-card{
+        background:var(--card);border:1px solid var(--line);
+        border-radius:12px;padding:12px 14px;margin-bottom:8px;
+      }
+      .movement-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
+      .movement-card-type{font-weight:700;font-size:14px}
+      .movement-card-date{font-size:12px;color:var(--muted);white-space:nowrap}
+      .movement-card-desc{font-size:13px;color:var(--text2);margin-bottom:8px}
+      .movement-card-amounts{display:flex;gap:16px;margin-bottom:6px}
+      .movement-card-amount{font-size:13px;font-weight:600}
+      .movement-card-amount .lbl{font-size:11px;color:var(--muted);font-weight:500;display:block}
+      .movement-card-balance{font-size:12px;color:var(--muted);border-top:1px solid var(--line2);padding-top:7px;margin-top:4px}
+      .movement-card-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:1px solid var(--line2)}
+      .movement-card-actions button{flex:1;font-size:12px;min-height:36px}
+    }
     .sticky-table{width:100%;border-collapse:collapse}
     .sticky-table thead th{padding:10px 12px;background:var(--bg);border-bottom:2px solid var(--line);text-align:left;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);white-space:nowrap}
     .sticky-table td{padding:11px 12px;border-bottom:1px solid var(--line2);font-size:14px;vertical-align:middle;white-space:nowrap}
@@ -914,20 +934,25 @@
         </div>
         <button class="btn-sm" onclick="closeMovements()">✕ Kapat</button>
       </div>
-      <table class="desktop-table">
-        <thead>
-          <tr>
-            <th>Tarih</th>
-            <th>İşlem</th>
-            <th>Açıklama</th>
-            <th>Borç Artışı</th>
-            <th>Borç Azalışı</th>
-            <th>Bakiye</th>
-            <th>İşlem</th>
-          </tr>
-        </thead>
-        <tbody id="movementTable"></tbody>
-      </table>
+      <!-- Masaüstü tablo -->
+      <div class="sticky-table-wrap">
+        <table class="sticky-table">
+          <thead>
+            <tr>
+              <th>Tarih</th>
+              <th>İşlem</th>
+              <th>Açıklama</th>
+              <th>Borç Artışı</th>
+              <th>Borç Azalışı</th>
+              <th>Bakiye</th>
+              <th>İşlem</th>
+            </tr>
+          </thead>
+          <tbody id="movementTable"></tbody>
+        </table>
+      </div>
+      <!-- Mobil kart listesi -->
+      <div id="movementMobileList" class="movement-mobile-list"></div>
     </div>
   </div>
 
@@ -2334,27 +2359,56 @@ function showSupplierMovements(supplierId){
 
   let running = 0;
   const tbody = byId('movementTable');
+  const mobileList = byId('movementMobileList');
   tbody.innerHTML = '';
+  if(mobileList) mobileList.innerHTML = '';
 
   rows.forEach(r => {
     running += Number(r.debit || 0) - Number(r.credit || 0);
 
     let action = '-';
+    let actionMobile = '';
     if(r.source === 'movement'){
       action = `<button class="mini" onclick="editSupplierMovement('${r.id}')">Düzenle</button> <button class="mini" onclick="deleteSupplierMovement('${r.id}')">Sil</button>`;
+      actionMobile = `<button class="mini" onclick="editSupplierMovement('${r.id}')">Düzenle</button><button class="mini" onclick="deleteSupplierMovement('${r.id}')">Sil</button>`;
     } else if(r.source === 'cash'){
       action = `<button class="mini" onclick="closeMovements(); openCashEdit('${r.id}')">Kasada Düzenle</button> <button class="mini" onclick="deleteCash('${r.id}')">Sil</button>`;
+      actionMobile = `<button class="mini" onclick="closeMovements();openCashEdit('${r.id}')">Kasada Düzenle</button><button class="mini" onclick="deleteCash('${r.id}')">Sil</button>`;
     } else if(r.source === 'opening'){
       action = `<button class="mini" onclick="editSupplierPrompt('${r.id}')">Açılışı Düzenle</button>`;
+      actionMobile = `<button class="mini" onclick="editSupplierPrompt('${r.id}')">Açılışı Düzenle</button>`;
     }
 
+    // MASAÜSTÜ SATIR
     const tr = document.createElement('tr');
     tr.innerHTML = `<td>${r.date || '-'}</td><td>${r.label}</td><td>${r.desc}</td><td>${r.debit ? money(r.debit) : '-'}</td><td>${r.credit ? money(r.credit) : '-'}</td><td><b>${money(running)}</b></td><td>${action}</td>`;
     tbody.appendChild(tr);
+
+    // MOBİL KART
+    if(mobileList){
+      const runningColor = running > 0 ? 'var(--danger)' : 'var(--ok)';
+      const div = document.createElement('div');
+      div.className = 'movement-card';
+      div.innerHTML = `
+        <div class="movement-card-top">
+          <div class="movement-card-type">${r.label}</div>
+          <div class="movement-card-date">${r.date || '-'}</div>
+        </div>
+        ${r.desc ? `<div class="movement-card-desc">${r.desc}</div>` : ''}
+        <div class="movement-card-amounts">
+          ${r.debit ? `<div class="movement-card-amount"><span class="lbl">Borç Artışı</span><span style="color:var(--danger)">+${money(r.debit)}</span></div>` : ''}
+          ${r.credit ? `<div class="movement-card-amount"><span class="lbl">Borç Azalışı</span><span style="color:var(--ok)">-${money(r.credit)}</span></div>` : ''}
+        </div>
+        <div class="movement-card-balance">Bakiye: <b style="color:${runningColor}">${money(running)}</b></div>
+        ${actionMobile ? `<div class="movement-card-actions">${actionMobile}</div>` : ''}
+      `;
+      mobileList.appendChild(div);
+    }
   });
 
   if(rows.length === 0){
     tbody.innerHTML = '<tr><td colspan="7" class="muted">Henüz hareket yok.</td></tr>';
+    if(mobileList) mobileList.innerHTML = '<div class="muted" style="padding:12px;text-align:center">Henüz hareket yok.</div>';
   }
 
   byId('movementTitle').textContent = `${supplier.name} - Hareketler`;
