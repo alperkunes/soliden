@@ -480,7 +480,6 @@
         <button class="tab" data-tab="employees" onclick="showTab('employees', this)">Personel</button>
         <button class="tab" data-tab="settings" onclick="showTab('settings', this)">Ayarlar</button>
         <button class="tab" data-tab="users" onclick="showTab('users', this)">Kullanıcılar</button>
-        <button class="tab" data-tab="stok" onclick="showTab('stok', this)">📦 Stok</button>
       </div>
     </div>
 
@@ -767,60 +766,6 @@
       </div>
     </div>
 
-    <!-- ===================== STOK ===================== -->
-    <div id="tab-stok" class="card hidden">
-      <div class="row-between" style="margin-bottom:14px">
-        <div class="section-title">📦 Stok Yönetimi</div>
-        <button class="btn-primary" onclick="openStokItem()">+ Ürün Ekle</button>
-      </div>
-
-      <div class="panel-summary-grid" style="margin-bottom:14px">
-        <div class="summary-card">
-          <div class="muted" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Toplam Ürün</div>
-          <div id="stokTotalItems" class="summary" style="margin-top:6px">0</div>
-        </div>
-        <div class="summary-card danger">
-          <div class="muted" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">⚠️ Kritik Stok</div>
-          <div id="stokCritical" class="summary danger" style="margin-top:6px">0</div>
-        </div>
-        <div class="summary-card ok">
-          <div class="muted" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Toplam Maliyet</div>
-          <div id="stokTotalCost" class="summary" style="margin-top:6px">₺0</div>
-        </div>
-      </div>
-
-      <div class="row" style="margin-bottom:12px;flex-wrap:wrap;gap:8px">
-        <select id="stokKatFilter" onchange="renderStok()" style="width:auto;min-width:140px">
-          <option value="">Tüm Kategoriler</option>
-        </select>
-        <input id="stokSearch" placeholder="🔍 Ürün ara..." oninput="renderStok()" style="flex:1;min-width:160px" />
-        <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;border:none;background:none;padding:6px 10px;font-weight:500;color:var(--text2)">
-          <input type="checkbox" id="stokOnlyCritical" onchange="renderStok()" style="width:16px;height:16px;padding:0;border:1.5px solid var(--line);border-radius:4px;flex-shrink:0" />
-          Sadece kritik
-        </label>
-      </div>
-
-      <div class="sticky-table-wrap">
-        <table class="sticky-table">
-          <thead>
-            <tr>
-              <th>Ürün</th>
-              <th>Kategori</th>
-              <th>Mevcut</th>
-              <th>Min.</th>
-              <th>Alış ₺</th>
-              <th>Satış ₺</th>
-              <th>Maliyet</th>
-              <th>Durum</th>
-              <th>İşlem</th>
-            </tr>
-          </thead>
-          <tbody id="stokTableBody"></tbody>
-        </table>
-      </div>
-      <div id="stokMobileList" class="mobile-card-list"></div>
-    </div>
-
   <div id="cashEditModal" class="modal-backdrop hidden">
     <div class="modal">
       <div class="modal-head">
@@ -1011,97 +956,6 @@
     </div>
   </div>
 
-  <!-- STOK ÜRÜN MODAL -->
-  <div id="stokItemModal" class="modal-backdrop hidden">
-    <div class="modal">
-      <div class="modal-head">
-        <div>
-          <div id="stokItemModalTitle" class="modal-title">Ürün Ekle</div>
-          <div class="muted">Stok kalemi tanımla</div>
-        </div>
-        <button class="btn-sm" onclick="closeStokItem()">✕ Kapat</button>
-      </div>
-      <input type="hidden" id="stokItemId" />
-      <div class="grid grid-2" style="margin-bottom:12px">
-        <div><div class="muted">Ürün Adı *</div><input id="stokItemAd" placeholder="ör: Dana Kıyma" /></div>
-        <div><div class="muted">Kategori *</div>
-          <input id="stokItemKat" placeholder="ör: Et, İçecek, Temizlik" list="stokKatList" />
-          <datalist id="stokKatList"></datalist>
-        </div>
-        <div><div class="muted">Birim</div><input id="stokItemBirim" placeholder="ör: kg, adet, lt" /></div>
-        <div><div class="muted">Minimum Stok</div><input id="stokItemMin" type="number" step="0.01" placeholder="0" /></div>
-        <div><div class="muted">Alış Fiyatı ₺</div><input id="stokItemAlisFiyat" type="number" step="0.01" placeholder="0,00" /></div>
-        <div><div class="muted">Satış Fiyatı ₺</div><input id="stokItemSatisFiyat" type="number" step="0.01" placeholder="0,00" /></div>
-      </div>
-      <div style="display:flex;gap:8px;margin-top:4px">
-        <button class="btn" style="flex:1;justify-content:center" onclick="closeStokItem()">İptal</button>
-        <button class="btn-primary" style="flex:2;justify-content:center" onclick="saveStokItem()">✓ Kaydet</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- STOK HAREKET MODAL -->
-  <div id="stokHareketModal" class="modal-backdrop hidden">
-    <div class="modal">
-      <div class="modal-head">
-        <div>
-          <div id="stokHareketTitle" class="modal-title">Hareket Ekle</div>
-          <div id="stokHareketSub" class="muted"></div>
-        </div>
-        <button class="btn-sm" onclick="closeStokHareket()">✕ Kapat</button>
-      </div>
-      <input type="hidden" id="stokHareketItemId" />
-
-      <!-- Tip seçimi -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
-        <button id="stokTipGiris" class="tip-btn" onclick="stokTipSec('giris')"
-          style="background:var(--ok-bg);border:2px solid var(--ok);border-radius:12px;padding:12px;flex-direction:column;gap:4px">
-          <span style="font-size:22px">📥</span><span style="font-weight:700;font-size:14px">Giriş</span>
-          <span style="font-size:11px;color:var(--muted)">Alış / Sayım</span>
-        </button>
-        <button id="stokTipCikis" class="tip-btn" onclick="stokTipSec('cikis')"
-          style="background:var(--danger-bg);border:2px solid var(--line);border-radius:12px;padding:12px;flex-direction:column;gap:4px">
-          <span style="font-size:22px">📤</span><span style="font-weight:700;font-size:14px">Çıkış</span>
-          <span style="font-size:11px;color:var(--muted)">Kullanım / Fire</span>
-        </button>
-      </div>
-
-      <div class="grid grid-2" style="margin-bottom:12px">
-        <div><div class="muted">Tarih</div><input id="stokHareketTarih" type="date" /></div>
-        <div><div class="muted">Miktar</div><input id="stokHareketMiktar" type="number" step="0.01" placeholder="0" /></div>
-        <div id="stokHareketFiyatWrap">
-          <div class="muted" id="stokHareketFiyatLbl">Birim Fiyat ₺</div>
-          <input id="stokHareketFiyat" type="number" step="0.01" placeholder="0,00" />
-        </div>
-        <div><div class="muted">Not</div><input id="stokHareketNot" placeholder="Opsiyonel" /></div>
-      </div>
-      <div style="display:flex;gap:8px;margin-top:4px">
-        <button class="btn" style="flex:1;justify-content:center" onclick="closeStokHareket()">İptal</button>
-        <button class="btn-primary" style="flex:2;justify-content:center" onclick="saveStokHareket()">✓ Kaydet</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- STOK HAREKETLER LİSTE MODAL -->
-  <div id="stokHareketListModal" class="modal-backdrop hidden">
-    <div class="modal">
-      <div class="modal-head">
-        <div>
-          <div id="stokHareketListTitle" class="modal-title">Hareketler</div>
-          <div id="stokHareketListSub" class="muted"></div>
-        </div>
-        <button class="btn-sm" onclick="closeStokHareketList()">✕ Kapat</button>
-      </div>
-      <div class="sticky-table-wrap">
-        <table class="sticky-table">
-          <thead><tr><th>Tarih</th><th>Tip</th><th>Miktar</th><th>Fiyat</th><th>Toplam</th><th>Not</th><th>İşlem</th></tr></thead>
-          <tbody id="stokHareketListBody"></tbody>
-        </table>
-      </div>
-      <div id="stokHareketListMobile" class="movement-mobile-list"></div>
-    </div>
-  </div>
-
   <!-- BOTTOM NAV — sadece telefonda görünür -->
   <nav class="bottom-nav" id="bottomNav">
     <button class="bottom-nav-item active" id="bnav-panel" onclick="showTab('panel',this);updateBottomNav('panel')">
@@ -1123,9 +977,6 @@
 
   <!-- MORE MENU — telefonda ayarlar ve kullanıcılar için -->
   <div id="moreMenu" style="display:none;position:fixed;bottom:72px;right:10px;left:10px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 -2px 20px rgba(0,0,0,.15);padding:8px;z-index:60">
-    <button style="width:100%;justify-content:flex-start;gap:12px;border:none;font-size:15px;padding:13px 14px;border-radius:10px" onclick="showTab('stok',document.querySelector('.tab[data-tab=stok]'));updateBottomNav('stok');toggleMoreMenu()">
-      📦 Stok
-    </button>
     <button style="width:100%;justify-content:flex-start;gap:12px;border:none;font-size:15px;padding:13px 14px;border-radius:10px" onclick="showTab('settings',document.querySelector('.tab[data-tab=settings]'));updateBottomNav('settings');toggleMoreMenu()">
       ⚙️ Ayarlar
     </button>
@@ -1167,8 +1018,6 @@ let state = {
   departments: [],
   attendanceRecords: [],
   monthlyAttendance: [],
-  stokItems: [],
-  stokMovements: []
 };
 
 const byId = id => document.getElementById(id);
@@ -1186,10 +1035,10 @@ function isAdmin(){
 }
 
 const roleDefaults = {
-  admin:    { can_panel:true, can_cash:true, can_suppliers:true, can_employees:true, can_settings:true, can_users:true, can_cash_edit:true, can_cash_delete:true, can_supplier_edit:true, can_employee_private:true, can_stok:true },
-  yonetici: { can_panel:true, can_cash:true, can_suppliers:true, can_employees:true, can_settings:true, can_users:false, can_cash_edit:true, can_cash_delete:true, can_supplier_edit:true, can_employee_private:false, can_stok:true },
-  kasa:     { can_panel:true, can_cash:true, can_suppliers:false, can_employees:false, can_settings:false, can_users:false, can_cash_edit:false, can_cash_delete:false, can_supplier_edit:false, can_employee_private:false, can_stok:false },
-  muhasebe: { can_panel:true, can_cash:true, can_suppliers:true, can_employees:false, can_settings:false, can_users:false, can_cash_edit:false, can_cash_delete:false, can_supplier_edit:true, can_employee_private:false, can_stok:true }
+  admin:    { can_panel:true, can_cash:true, can_suppliers:true, can_employees:true, can_settings:true, can_users:true, can_cash_edit:true, can_cash_delete:true, can_supplier_edit:true, can_employee_private:true },
+  yonetici: { can_panel:true, can_cash:true, can_suppliers:true, can_employees:true, can_settings:true, can_users:false, can_cash_edit:true, can_cash_delete:true, can_supplier_edit:true, can_employee_private:false },
+  kasa:     { can_panel:true, can_cash:true, can_suppliers:false, can_employees:false, can_settings:false, can_users:false, can_cash_edit:false, can_cash_delete:false, can_supplier_edit:false, can_employee_private:false },
+  muhasebe: { can_panel:true, can_cash:true, can_suppliers:true, can_employees:false, can_settings:false, can_users:false, can_cash_edit:false, can_cash_delete:false, can_supplier_edit:true, can_employee_private:false }
 };
 
 function hasPermission(key){
@@ -1206,7 +1055,6 @@ function tabPermission(tabName){
     employees: 'can_employees',
     settings: 'can_settings',
     users: 'can_users',
-    stok: 'can_stok'
   };
   return hasPermission(map[tabName]);
 }
@@ -1283,9 +1131,9 @@ function showTab(name, el){
   if(!tabPermission(name)) return alert('Bu ekran için yetkin yok.');
   document.querySelectorAll('.tab').forEach(function(x){ x.classList.remove('active'); });
   if(el) el.classList.add('active');
-  ['panel','suppliers','cash','employees','settings','users','stok'].forEach(function(t){ byId('tab-'+t).classList.add('hidden'); });
+  ['panel','suppliers','cash','employees','settings','users'].forEach(function(t){ byId('tab-'+t).classList.add('hidden'); });
   byId('tab-'+name).classList.remove('hidden');
-  if(name==='stok') renderStok();
+  if(name==='panel') renderSummary();
 }
 async function signIn(){
   if(!sb) return msg('Supabase URL ve anon key girilmemiş.');
@@ -1362,7 +1210,7 @@ async function loadCore(){
   const monthStart = `${month}-01`;
   const monthEnd = effectiveMonthEnd(month);
 
-  const [{data:suppliers},{data:cash},{data:employees},{data:movements},{data:paymentMethods},{data:departments},{data:attendanceRecords},{data:monthlyAttendance},{data:stokItems},{data:stokMovements}] = await Promise.all([
+  const [{data:suppliers},{data:cash},{data:employees},{data:movements},{data:paymentMethods},{data:departments},{data:attendanceRecords},{data:monthlyAttendance}] = await Promise.all([
     sb.from('suppliers').select('*').eq('business_id', bid).order('name'),
     sb.from('cash_transactions').select('*').eq('business_id', bid).order('created_at', {ascending:false}).limit(500),
     sb.from('employees').select('*').eq('business_id', bid).eq('is_active', true).order('full_name'),
@@ -1371,8 +1219,6 @@ async function loadCore(){
     sb.from('transaction_types').select('*').eq('business_id', bid).order('sort_order').order('name'),
     sb.from('attendance_records').select('*').eq('business_id', bid).eq('attendance_date', attendanceDate),
     sb.from('attendance_records').select('*').eq('business_id', bid).gte('attendance_date', monthStart).lte('attendance_date', monthEnd),
-    sb.from('stock_items').select('*').eq('user_id', state.session.user.id).order('name'),
-    sb.from('stock_movements').select('*').eq('user_id', state.session.user.id).order('movement_date', {ascending:false})
   ]);
 
   state.suppliers = suppliers || [];
@@ -1383,8 +1229,6 @@ async function loadCore(){
   state.departments = departments || [];
   state.attendanceRecords = attendanceRecords || [];
   state.monthlyAttendance = monthlyAttendance || [];
-  state.stokItems = stokItems || [];
-  state.stokMovements = stokMovements || [];
   state.supplierBalances = computeSupplierBalances();
 
   if(hasPermission('can_employee_private')){
@@ -1407,7 +1251,6 @@ async function loadCore(){
   renderUsers();
   renderCash();
   renderSummary();
-  renderStok();
 }
 
 async function ensureDefaultPaymentMethods(businessId){
@@ -2990,242 +2833,6 @@ async function createEmployee(){
 }
 
 
-// ============================================================
-// STOK MODÜLÜ
-// ============================================================
-var _stokTip = 'giris';
-
-function stokMevcut(itemId){
-  var giris = state.stokMovements.filter(function(m){ return m.stock_item_id===itemId && m.movement_type==='giris'; }).reduce(function(s,m){ return s+Number(m.quantity||0); },0);
-  var cikis = state.stokMovements.filter(function(m){ return m.stock_item_id===itemId && m.movement_type==='cikis'; }).reduce(function(s,m){ return s+Number(m.quantity||0); },0);
-  return giris - cikis;
-}
-
-function stokSonAlisFiyat(itemId){
-  var girisler = state.stokMovements
-    .filter(function(m){ return m.stock_item_id===itemId && m.movement_type==='giris' && m.unit_cost; })
-    .sort(function(a,b){ return String(b.movement_date).localeCompare(String(a.movement_date)); });
-  if(girisler.length) return Number(girisler[0].unit_cost);
-  var item = state.stokItems.find(function(x){ return x.id===itemId; });
-  return item ? Number(item.unit_cost||0) : 0;
-}
-
-function renderStok(){
-  var kat = (byId('stokKatFilter')&&byId('stokKatFilter').value||'').toLowerCase();
-  var ara = (byId('stokSearch')&&byId('stokSearch').value||'').toLowerCase();
-  var sadeceCritical = byId('stokOnlyCritical')&&byId('stokOnlyCritical').checked;
-
-  // Kategori select güncelle
-  var katSelect = byId('stokKatFilter');
-  if(katSelect){
-    var katlar = [...new Set(state.stokItems.map(function(x){ return x.category||''; }).filter(Boolean))].sort();
-    katSelect.innerHTML = '<option value="">Tüm Kategoriler</option>'+katlar.map(function(k){ return '<option value="'+k+'" '+(k.toLowerCase()===kat?'selected':'')+'>'+k+'</option>'; }).join('');
-  }
-  // Datalist
-  var dl = byId('stokKatList');
-  if(dl){
-    var katlar2 = [...new Set(state.stokItems.map(function(x){ return x.category||''; }).filter(Boolean))].sort();
-    dl.innerHTML = katlar2.map(function(k){ return '<option value="'+k+'">'; }).join('');
-  }
-
-  var items = state.stokItems.filter(function(item){
-    if(kat && (item.category||'').toLowerCase() !== kat) return false;
-    if(ara && (item.name||'').toLowerCase().indexOf(ara) < 0) return false;
-    if(sadeceCritical && stokMevcut(item.id) >= Number(item.min_stock||0)) return false;
-    return true;
-  });
-
-  // Özet
-  var toplamMaliyet=0, kritikSayisi=0;
-  state.stokItems.forEach(function(item){
-    var mevcut = stokMevcut(item.id);
-    toplamMaliyet += mevcut * stokSonAlisFiyat(item.id);
-    if(mevcut < Number(item.min_stock||0)) kritikSayisi++;
-  });
-  if(byId('stokTotalItems')) byId('stokTotalItems').textContent = state.stokItems.length;
-  if(byId('stokCritical')) byId('stokCritical').textContent = kritikSayisi;
-  if(byId('stokTotalCost')) byId('stokTotalCost').textContent = money(toplamMaliyet);
-
-  // Tablo
-  var tbody = byId('stokTableBody');
-  if(tbody){
-    tbody.innerHTML = '';
-    if(!items.length){
-      tbody.innerHTML = '<tr><td colspan="9" class="muted" style="text-align:center;padding:20px">'+(state.stokItems.length?'Filtre sonucu yok.':'Henüz ürün eklenmemiş.')+'</td></tr>';
-    } else {
-      items.forEach(function(item){
-        var mevcut=stokMevcut(item.id), min=Number(item.min_stock||0);
-        var alisFiyat=stokSonAlisFiyat(item.id), satisFiyat=Number(item.sale_price||0);
-        var maliyet=mevcut*alisFiyat, kritik=mevcut<min;
-        var durum=kritik?'<span class="badge badge-danger">⚠️ Kritik</span>':'<span class="badge badge-ok">✓ Normal</span>';
-        var tr=document.createElement('tr');
-        if(kritik) tr.style.background='var(--danger-bg)';
-        tr.innerHTML='<td><b>'+item.name+'</b></td><td>'+(item.category||'-')+'</td>'+
-          '<td><b>'+(mevcut%1===0?mevcut:mevcut.toFixed(2))+' '+(item.supplier_name||'')+'</b></td>'+
-          '<td>'+(min||'-')+'</td><td>'+(alisFiyat?money(alisFiyat):'-')+'</td>'+
-          '<td>'+(satisFiyat?money(satisFiyat):'-')+'</td><td><b>'+money(maliyet)+'</b></td>'+
-          '<td>'+durum+'</td><td style="white-space:nowrap">'+
-          '<button class="mini" onclick="openStokHareket(\''+item.id+'\')">+ Hareket</button> '+
-          '<button class="mini" onclick="openStokHareketList(\''+item.id+'\')">Geçmiş</button> '+
-          '<button class="mini" onclick="openStokItem(\''+item.id+'\')">Düzenle</button> '+
-          '<button class="mini" onclick="deleteStokItem(\''+item.id+'\')" style="color:var(--danger)">Sil</button></td>';
-        tbody.appendChild(tr);
-      });
-    }
-  }
-
-  // Mobil
-  var mobile=byId('stokMobileList');
-  if(mobile){
-    mobile.innerHTML='';
-    if(!items.length){ mobile.innerHTML='<div class="mobile-item muted">'+(state.stokItems.length?'Filtre sonucu yok.':'Henüz ürün eklenmemiş.')+'</div>'; }
-    else items.forEach(function(item){
-      var mevcut=stokMevcut(item.id),min=Number(item.min_stock||0);
-      var alisFiyat=stokSonAlisFiyat(item.id),satisFiyat=0;
-      var maliyet=mevcut*alisFiyat,kritik=mevcut<min;
-      var div=document.createElement('div'); div.className='mobile-item';
-      if(kritik) div.style.borderColor='var(--danger)';
-      div.innerHTML='<div class="mobile-item-title">'+item.name+
-        (kritik?' <span class="badge badge-danger" style="font-size:10px">⚠️</span>':'')+'</div>'+
-        '<div class="mobile-kv"><span class="k">Kategori</span><span>'+(item.category||'-')+'</span></div>'+
-        '<div class="mobile-kv"><span class="k">Mevcut</span><span><b>'+(mevcut%1===0?mevcut:mevcut.toFixed(2))+' '+(item.supplier_name||'')+'</b></span></div>'+
-        '<div class="mobile-kv"><span class="k">Min. Stok</span><span>'+(min||'-')+'</span></div>'+
-        '<div class="mobile-kv"><span class="k">Alış Fiyatı</span><span>'+(alisFiyat?money(alisFiyat):'-')+'</span></div>'+
-        '<div class="mobile-kv"><span class="k">Satış Fiyatı</span><span>'+(satisFiyat?money(satisFiyat):'-')+'</span></div>'+
-        '<div class="mobile-kv"><span class="k">Maliyet</span><span><b>'+money(maliyet)+'</b></span></div>'+
-        '<div class="mobile-actions">'+
-        '<button onclick="openStokHareket(\''+item.id+'\')">+ Hareket</button>'+
-        '<button onclick="openStokHareketList(\''+item.id+'\')">Geçmiş</button>'+
-        '<button onclick="openStokItem(\''+item.id+'\')">Düzenle</button>'+
-        '<button onclick="deleteStokItem(\''+item.id+'\')" style="color:var(--danger)">Sil</button>'+
-        '</div>';
-      mobile.appendChild(div);
-    });
-  }
-}
-
-function openStokItem(id){
-  var item=id?state.stokItems.find(function(x){ return x.id===id; }):null;
-  byId('stokItemId').value=id||'';
-  byId('stokItemModalTitle').textContent=id?'Ürün Düzenle':'Ürün Ekle';
-  byId('stokItemAd').value=item?(item.name||''):'';
-  byId('stokItemKat').value=item?(item.category||''):'';
-  byId('stokItemBirim').value=item?(item.supplier_name||''):'';
-  byId('stokItemMin').value=item?(item.min_stock||''):'';
-  byId('stokItemAlisFiyat').value=item?(item.unit_cost||''):'';
-  byId('stokItemSatisFiyat').value='';
-  byId('stokItemModal').classList.remove('hidden');
-}
-function closeStokItem(){ byId('stokItemModal').classList.add('hidden'); }
-async function saveStokItem(){
-  var id=byId('stokItemId').value;
-  var name=byId('stokItemAd').value.trim();
-  if(!name){ alert('Ürün adı gerekli.'); return; }
-  var payload={
-    user_id:state.session.user.id, name,
-    category:byId('stokItemKat').value.trim()||null,
-    supplier_name:byId('stokItemBirim').value.trim()||null,
-    min_stock:Number(byId('stokItemMin').value)||0,
-    unit_cost:Number(byId('stokItemAlisFiyat').value)||null
-  };
-  var res=id ? await sb.from('stock_items').update(payload).eq('id',id).eq('user_id',state.session.user.id)
-              : await sb.from('stock_items').insert(payload);
-  if(res.error){ alert('Hata: '+res.error.message); return; }
-  closeStokItem(); await loadCore();
-}
-async function deleteStokItem(id){
-  var item=state.stokItems.find(function(x){ return x.id===id; });
-  if(!item) return;
-  var n=state.stokMovements.filter(function(m){ return m.stock_item_id===id; }).length;
-  if(n>0 && !confirm(item.name+' için '+n+' hareket var. Yine de sil?')) return;
-  if(!confirm(item.name+' ürününü sil?')) return;
-  var {error}=await sb.from('stock_items').delete().eq('id',id).eq('user_id',state.session.user.id);
-  if(error){ alert(error.message); return; }
-  await loadCore();
-}
-
-function stokTipSec(tip){
-  _stokTip=tip;
-  byId('stokTipGiris').style.borderColor=tip==='giris'?'var(--ok)':'var(--line)';
-  byId('stokTipCikis').style.borderColor=tip==='cikis'?'var(--danger)':'var(--line)';
-  if(byId('stokHareketFiyatLbl')) byId('stokHareketFiyatLbl').textContent=tip==='giris'?'Alış Fiyatı ₺':'Satış Fiyatı ₺';
-}
-function openStokHareket(itemId){
-  var item=state.stokItems.find(function(x){ return x.id===itemId; });
-  if(!item) return;
-  _stokTip='giris';
-  byId('stokHareketItemId').value=itemId;
-  byId('stokHareketTitle').textContent=item.name+' — Hareket Ekle';
-  byId('stokHareketSub').textContent='Mevcut: '+stokMevcut(itemId)+' '+(item.supplier_name||'');
-  byId('stokHareketTarih').value=today();
-  byId('stokHareketMiktar').value='';
-  byId('stokHareketFiyat').value=item.unit_cost||'';
-  byId('stokHareketNot').value='';
-  stokTipSec('giris');
-  byId('stokHareketModal').classList.remove('hidden');
-}
-function closeStokHareket(){ byId('stokHareketModal').classList.add('hidden'); }
-async function saveStokHareket(){
-  var itemId=byId('stokHareketItemId').value;
-  var miktar=Number(byId('stokHareketMiktar').value||0);
-  if(!miktar||miktar<=0){ alert('Geçerli miktar gir.'); return; }
-  var payload={
-    user_id:state.session.user.id, stock_item_id:itemId,
-    movement_type:_stokTip, quantity:miktar,
-    unit_cost:Number(byId('stokHareketFiyat').value||0)||null,
-    movement_date:byId('stokHareketTarih').value||today(),
-    note:byId('stokHareketNot').value.trim()||null
-  };
-  var {error}=await sb.from('stock_movements').insert(payload);
-  if(error){ alert('Hata: '+error.message); return; }
-  closeStokHareket(); await loadCore();
-}
-
-function openStokHareketList(itemId){
-  var item=state.stokItems.find(function(x){ return x.id===itemId; });
-  if(!item) return;
-  var hareketler=state.stokMovements.filter(function(m){ return m.stock_item_id===itemId; });
-  byId('stokHareketListTitle').textContent=item.name+' — Hareketler';
-  byId('stokHareketListSub').textContent='Mevcut: '+stokMevcut(itemId)+' '+(item.supplier_name||'');
-  var tbody=byId('stokHareketListBody'), ml=byId('stokHareketListMobile');
-  tbody.innerHTML=''; if(ml) ml.innerHTML='';
-  if(!hareketler.length){
-    tbody.innerHTML='<tr><td colspan="7" class="muted" style="text-align:center;padding:16px">Henüz hareket yok.</td></tr>';
-    if(ml) ml.innerHTML='<div class="muted" style="padding:12px;text-align:center">Henüz hareket yok.</div>';
-  } else {
-    hareketler.forEach(function(m){
-      var tipRenk=m.movement_type==='giris'?'var(--ok)':'var(--danger)';
-      var tipLbl=m.movement_type==='giris'?'📥 Giriş':'📤 Çıkış';
-      var toplam=m.unit_cost?money(Number(m.quantity||0)*Number(m.unit_cost||0)):'-';
-      var tr=document.createElement('tr');
-      tr.innerHTML='<td>'+m.movement_date+'</td><td style="color:'+tipRenk+';font-weight:700">'+tipLbl+'</td>'+
-        '<td><b>'+Number(m.quantity||0)+'</b></td><td>'+(m.unit_cost?money(m.unit_cost):'-')+'</td>'+
-        '<td>'+toplam+'</td><td>'+(m.note||'-')+'</td>'+
-        '<td><button class="mini" onclick="deleteStokHareket(\''+m.id+'\',\''+itemId+'\')" style="color:var(--danger)">Sil</button></td>';
-      tbody.appendChild(tr);
-      if(ml){
-        var div=document.createElement('div'); div.className='movement-card';
-        div.innerHTML='<div class="movement-card-top"><div class="movement-card-type" style="color:'+tipRenk+'">'+tipLbl+'</div>'+
-          '<div class="movement-card-date">'+m.movement_date+'</div></div>'+
-          '<div class="movement-card-amounts">'+
-          '<div class="movement-card-amount"><span class="lbl">Miktar</span>'+Number(m.quantity||0)+' '+(item.supplier_name||'')+'</div>'+
-          (m.unit_cost?'<div class="movement-card-amount"><span class="lbl">Birim Fiyat</span>'+money(m.unit_cost)+'</div>':'')+
-          (m.unit_cost?'<div class="movement-card-amount"><span class="lbl">Toplam</span>'+toplam+'</div>':'')+
-          '</div>'+(m.note?'<div class="movement-card-desc">'+m.note+'</div>':'')+
-          '<div class="movement-card-actions"><button class="mini" onclick="deleteStokHareket(\''+m.id+'\',\''+itemId+'\')" style="color:var(--danger);flex:1">Sil</button></div>';
-        ml.appendChild(div);
-      }
-    });
-  }
-  byId('stokHareketListModal').classList.remove('hidden');
-}
-function closeStokHareketList(){ byId('stokHareketListModal').classList.add('hidden'); }
-async function deleteStokHareket(movementId,itemId){
-  if(!confirm('Bu hareketi silmek istiyor musun?')) return;
-  var {error}=await sb.from('stock_movements').delete().eq('id',movementId).eq('user_id',state.session.user.id);
-  if(error){ alert(error.message); return; }
-  await loadCore(); openStokHareketList(itemId);
-}
 
 boot();
 </script>
