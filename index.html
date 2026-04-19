@@ -785,6 +785,22 @@
       </div>
 
       <div class="card-inner" style="margin-bottom:12px">
+        <div class="row-between" style="margin-bottom:10px">
+          <div>
+            <b>İlk Kurulum Toplu Stok Yükleme</b>
+            <div class="muted">Tüm ürünleri tek seferde Excel/CSV ile içeri al. Excel’de doldurup CSV olarak kaydedip yüklemen yeterli.</div>
+          </div>
+        </div>
+        <div class="grid grid-4" style="margin-top:12px">
+          <input id="stockInitDate" type="date" />
+          <input id="stockInitNote" placeholder="Toplu ilk yükleme notu opsiyonel" />
+          <button onclick="downloadStockInitTemplate()">İlk Stok Şablonu İndir</button>
+          <button class="btn-primary" onclick="triggerStockInitImport()">Stok Şablonu Yükle</button>
+          <div class="muted" style="grid-column:1/-1">Şablon sütunları: <b>urun_adi</b>, <b>kategori</b>, <b>birim</b>, <b>sise_cl</b>, <b>min_stok</b>, <b>acilis_stogu</b>, <b>note</b>. Yüklemede ürün kartı oluşur/güncellenir; <b>acilis_stogu</b> doluysa o ürün için bir <b>sayım</b> hareketi de eklenir.</div>
+        </div>
+      </div>
+
+      <div class="card-inner" style="margin-bottom:12px">
         <b>Stok Hareketi Ekle</b>
         <div class="grid grid-4" style="margin-top:12px">
           <select id="stockMoveItem"></select>
@@ -802,6 +818,22 @@
           <input id="stockMoveNote" placeholder="Not" />
           <button class="btn-primary" onclick="createStockMovement()">+ Hareket Ekle</button>
           <div class="muted" style="grid-column:1/-1">Not: Hareket tipi <b>Sayım</b> seçildiğinde, girilen miktar mevcut stoktan farklıysa sistem kayıt öncesi uyarı verir.</div>
+        </div>
+      </div>
+
+      <div class="card-inner" style="margin-bottom:12px">
+        <div class="row-between" style="margin-bottom:10px">
+          <div>
+            <b>Toplu Sayım Yükleme</b>
+            <div class="muted">Excel’de açılabilen CSV şablonu indir, sayım miktarlarını girip toplu yükle.</div>
+          </div>
+        </div>
+        <div class="grid grid-4" style="margin-top:12px">
+          <input id="stockBulkCountDate" type="date" />
+          <input id="stockBulkCountNote" placeholder="Toplu sayım notu opsiyonel" />
+          <button onclick="downloadStockCountTemplate()">Sayım Şablonu İndir</button>
+          <button class="btn-primary" onclick="triggerStockCountImport()">Sayım CSV Yükle</button>
+          <div class="muted" style="grid-column:1/-1">Şablonda sütunlar: <b>urun_adi</b>, <b>mevcut_stok</b>, <b>sayilan_miktar</b>, <b>note</b>. Yüklemede sadece <b>sayilan_miktar</b> dolu satırlar işlenir.</div>
         </div>
       </div>
 
@@ -1217,6 +1249,8 @@
   </div>
 </div>
 
+<input id="stockCountImportInput" type="file" accept=".csv,text/csv" class="hidden" />
+<input id="stockInitImportInput" type="file" accept=".csv,text/csv" class="hidden" />
 <script>
 const SUPABASE_URL = "https://defwmczznunqllgouims.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlZndtY3p6bnVucWxsZ291aW1zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzODY1MDcsImV4cCI6MjA4OTk2MjUwN30.1dFwTQk0aJOHuWap-myRmtQie5QXhUhMn7YZkqgSFBo";
@@ -1611,6 +1645,259 @@ function renderSettings(){
 
 
 
+
+function csvEscape(value){
+  if(value === null || value === undefined) return '';
+  const s = String(value).replace(/\r?\n/g, ' ');
+  if(/[",;\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+
+function toCSV(rows, headers){
+  const sep = ';';
+  return '\ufeff' + [headers.join(sep), ...rows.map(row => headers.map(h => csvEscape(row[h])).join(sep))].join('\n');
+}
+
+function parseSimpleCSV(text){
+  const clean = text.replace(/^\ufeff/, '');
+  const lines = clean.split(/\r?\n/).filter(line => line.trim() !== '');
+  if(!lines.length) return [];
+  const sep = lines[0].includes(';') ? ';' : ',';
+  const headers = lines[0].split(sep).map(x => x.trim().replace(/^"|"$/g,''));
+  return lines.slice(1).map(line => {
+    const parts = line.split(sep).map(x => x.trim().replace(/^"|"$/g,'').replace(/""/g,'"'));
+    const obj = {};
+    headers.forEach((h,i) => obj[h] = parts[i] || '');
+    return obj;
+  });
+}
+
+function downloadFile(filename, content, mime='text/csv;charset=utf-8'){
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+
+function downloadStockInitTemplate(){
+  const headers = ['urun_adi','kategori','birim','sise_cl','min_stok','acilis_stogu','note'];
+  const rows = [
+    { urun_adi:'Yeni Rakı 70cl', kategori:'Rakı', birim:'şişe', sise_cl:'70', min_stok:'3', acilis_stogu:'12', note:'bar açılış' },
+    { urun_adi:'Coca Cola 1L', kategori:'Meşrubat', birim:'adet', sise_cl:'', min_stok:'6', acilis_stogu:'8', note:'' },
+  ];
+  downloadFile(`ilk_stok_yukleme_sablonu_${today()}.csv`, toCSV(rows, headers));
+}
+
+function triggerStockInitImport(){
+  const input = byId('stockInitImportInput');
+  if(!input) return alert('Stok yükleme alanı bulunamadı.');
+  input.value = '';
+  input.onchange = handleStockInitImport;
+  input.click();
+}
+
+async function handleStockInitImport(e){
+  try{
+    const file = e.target.files?.[0];
+    if(!file) return;
+
+    const rows = parseSimpleCSV(await file.text());
+    if(!rows.length) throw new Error('CSV içinde veri yok.');
+
+    const initDate = byId('stockInitDate')?.value || today();
+    const defaultNote = (byId('stockInitNote')?.value || '').trim();
+
+    const itemPayload = [];
+    const rawRows = [];
+
+    rows.forEach(r => {
+      const name = (r.urun_adi || '').trim();
+      if(!name) return;
+
+      itemPayload.push({
+        business_id: state.activeBusinessId,
+        name,
+        category: (r.kategori || '').trim() || null,
+        unit: (r.birim || '').trim() || 'adet',
+        bottle_size_cl: (r.sise_cl || '').trim() === '' ? null : Number(String(r.sise_cl).replace(',', '.')),
+        min_stock: (r.min_stok || '').trim() === '' ? 0 : Number(String(r.min_stok).replace(',', '.')),
+        is_active: true,
+        created_by: state.session.user.id
+      });
+
+      rawRows.push({
+        name,
+        opening: (r.acilis_stogu || '').trim(),
+        note: (r.note || '').trim() || defaultNote || 'İlk stok yükleme'
+      });
+    });
+
+    if(!itemPayload.length) throw new Error('İşlenecek ürün satırı bulunamadı.');
+
+    const { error: itemError } = await sb.from('stock_items').upsert(itemPayload, { onConflict:'business_id,name' });
+    if(itemError) throw itemError;
+
+    const { data: refreshedItems, error: itemFetchError } = await sb.from('stock_items')
+      .select('*')
+      .eq('business_id', state.activeBusinessId);
+
+    if(itemFetchError) throw itemFetchError;
+
+    state.stockItems = refreshedItems || [];
+
+    const movementPayload = [];
+    const invalidOpening = [];
+    rawRows.forEach(r => {
+      if(r.opening === '') return;
+      const item = state.stockItems.find(i => (i.name || '').toLocaleLowerCase('tr-TR') === r.name.toLocaleLowerCase('tr-TR'));
+      if(!item) return;
+      const opening = Number(String(r.opening).replace(',', '.'));
+      if(Number.isNaN(opening)){
+        invalidOpening.push(r.name);
+        return;
+      }
+      movementPayload.push({
+        business_id: state.activeBusinessId,
+        item_id: item.id,
+        movement_date: initDate,
+        type: 'sayim',
+        quantity: opening,
+        note: r.note,
+        created_by: state.session.user.id
+      });
+    });
+
+    if(movementPayload.length){
+      const ok = confirm(
+        `${itemPayload.length} stok kartı işlenecek.\n` +
+        `${movementPayload.length} ürün için açılış sayımı eklenecek.\n` +
+        `${invalidOpening.length ? `Geçersiz açılış stoğu olan ürün sayısı: ${invalidOpening.length}\n` : ''}\n` +
+        `Devam etmek istiyor musun?`
+      );
+      if(!ok) return;
+
+      const { error: moveError } = await sb.from('stock_movements').insert(movementPayload);
+      if(moveError) throw moveError;
+    }
+
+    if(!movementPayload.length){
+      alert(`Toplu stok kartı yükleme tamamlandı. Ürün kartı: ${itemPayload.length}`);
+    } else {
+      alert(`Toplu stok yükleme tamamlandı. Ürün kartı: ${itemPayload.length}, açılış sayımı: ${movementPayload.length}`);
+    }
+
+    if(byId('stockInitNote')) byId('stockInitNote').value = '';
+    await loadCore();
+  } catch(err){
+    alert('İlk stok yükleme hatası: ' + (err?.message || err));
+  }
+}
+
+
+function downloadStockCountTemplate(){
+  const headers = ['urun_adi','mevcut_stok','sayilan_miktar','note'];
+  const rows = state.stockItems
+    .filter(i => i.is_active)
+    .map(i => ({
+      urun_adi: i.name,
+      mevcut_stok: stockQuantity(i.id),
+      sayilan_miktar: '',
+      note: ''
+    }));
+  downloadFile(`stok_sayim_sablonu_${today()}.csv`, toCSV(rows, headers));
+}
+
+function triggerStockCountImport(){
+  const input = byId('stockCountImportInput');
+  if(!input) return alert('Sayım yükleme alanı bulunamadı.');
+  input.value = '';
+  input.onchange = handleStockCountImport;
+  input.click();
+}
+
+async function handleStockCountImport(e){
+  try{
+    const file = e.target.files?.[0];
+    if(!file) return;
+
+    const rows = parseSimpleCSV(await file.text());
+    if(!rows.length) throw new Error('CSV içinde veri yok.');
+
+    const movementDate = byId('stockBulkCountDate')?.value || today();
+    const defaultNote = (byId('stockBulkCountNote')?.value || '').trim();
+
+    const validRows = [];
+    const missingItems = [];
+    const diffRows = [];
+
+    rows.forEach(r => {
+      const name = (r.urun_adi || '').trim();
+      const countedRaw = (r.sayilan_miktar || '').trim();
+      if(!name || countedRaw === '') return;
+
+      const item = state.stockItems.find(i => (i.name || '').toLocaleLowerCase('tr-TR') === name.toLocaleLowerCase('tr-TR'));
+      if(!item){
+        missingItems.push(name);
+        return;
+      }
+
+      const counted = Number(String(countedRaw).replace(',', '.'));
+      if(Number.isNaN(counted)) return;
+
+      const current = stockQuantity(item.id);
+      const diff = counted - current;
+      if(diff !== 0){
+        diffRows.push(`${item.name}: ${current} → ${counted} (${diff > 0 ? '+' : ''}${diff})`);
+      }
+
+      validRows.push({
+        business_id: state.activeBusinessId,
+        item_id: item.id,
+        movement_date: movementDate,
+        type: 'sayim',
+        quantity: counted,
+        note: (r.note || '').trim() || defaultNote || 'Toplu sayım',
+        created_by: state.session.user.id
+      });
+    });
+
+    if(!validRows.length){
+      throw new Error('İşlenecek geçerli sayım satırı bulunamadı.');
+    }
+
+    let msg = `${validRows.length} satır sayım olarak işlenecek.`;
+    if(diffRows.length){
+      const preview = diffRows.slice(0,8).join('\n');
+      msg += `\n\nFark çıkan ürün sayısı: ${diffRows.length}\n${preview}`;
+      if(diffRows.length > 8) msg += `\n...`;
+    }
+    if(missingItems.length){
+      const miss = missingItems.slice(0,8).join('\n');
+      msg += `\n\nBulunamayan ürünler (${missingItems.length}):\n${miss}`;
+      if(missingItems.length > 8) msg += `\n...`;
+    }
+
+    const ok = confirm(msg + '\n\nToplu sayımı kaydetmek istiyor musun?');
+    if(!ok) return;
+
+    const { error } = await sb.from('stock_movements').insert(validRows);
+    if(error) throw error;
+
+    alert(`Toplu sayım kaydedildi. İşlenen satır: ${validRows.length}`);
+    if(byId('stockBulkCountNote')) byId('stockBulkCountNote').value = '';
+    await loadCore();
+  } catch(err){
+    alert('Toplu sayım yüklenemedi: ' + (err?.message || err));
+  }
+}
+
+
 function stockQuantity(itemId){
   let running = 0;
   state.stockMovements
@@ -1665,6 +1952,8 @@ function renderStock(){
   }
 
   if(byId('stockMoveDate') && !byId('stockMoveDate').value) byId('stockMoveDate').value = today();
+  if(byId('stockBulkCountDate') && !byId('stockBulkCountDate').value) byId('stockBulkCountDate').value = today();
+  if(byId('stockInitDate') && !byId('stockInitDate').value) byId('stockInitDate').value = today();
 
   const q = (byId('stockFilterText')?.value || '').trim().toLocaleLowerCase('tr-TR');
   const statusFilter = byId('stockFilterStatus')?.value || '';
