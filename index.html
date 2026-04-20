@@ -1,0 +1,4435 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Galata V1 Core</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#f5f1eb;
+      --bg2:#ede8df;
+      --card:#fff;
+      --line:#e3dbd0;
+      --line2:#ede8df;
+      --text:#1a1510;
+      --text2:#4a3f35;
+      --muted:#9a8e83;
+      --acc:#9b4521;
+      --acc2:#b85a2e;
+      --acc3:#7a3418;
+      --acc-light:#fdf1eb;
+      --acc-xlight:#fef8f5;
+      --ok:#1a6641;
+      --ok-bg:#edf7f1;
+      --danger:#b02020;
+      --danger-bg:#fdf1f1;
+      --warn:#9a5c00;
+      --warn-bg:#fef7e6;
+      --nav:#1c1713;
+      --nav2:#2a221c;
+      --nav-text:rgba(255,255,255,.55);
+      --nav-active:#fff;
+      --nav-accent:#e07040;
+      --r:16px;--r-sm:12px;--r-xs:8px;
+      --shadow:0 2px 8px rgba(0,0,0,.08),0 0 0 1px rgba(0,0,0,.04);
+      --shadow-sm:0 1px 3px rgba(0,0,0,.06);
+      --shadow-lg:0 12px 40px rgba(0,0,0,.15),0 2px 8px rgba(0,0,0,.08);
+      --transition:.18s cubic-bezier(.4,0,.2,1);
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html{height:100%}
+    body{
+      margin:0;height:100%;
+      font-family:'DM Sans',system-ui,-apple-system,sans-serif;
+      background:var(--bg);color:var(--text);
+      line-height:1.55;font-size:15px;
+    }
+
+    /* ══════════════════ LOGIN ══════════════════ */
+    .login-page{
+      min-height:100dvh;display:flex;align-items:center;justify-content:center;
+      background:var(--nav);padding:20px;
+      background-image:
+        radial-gradient(ellipse 80% 60% at 80% -10%,rgba(155,69,33,.25) 0%,transparent 60%),
+        radial-gradient(ellipse 60% 50% at -10% 80%,rgba(224,112,64,.12) 0%,transparent 60%);
+    }
+    .login-box{
+      width:100%;max-width:380px;
+      background:var(--card);
+      border-radius:24px;padding:40px 36px;
+      box-shadow:var(--shadow-lg);
+      animation:fadeUp .4s var(--transition) both;
+    }
+    @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    .login-logo{
+      font-family:'Playfair Display',Georgia,serif;
+      font-style:italic;font-size:32px;
+      color:var(--acc);letter-spacing:-.3px;
+      margin-bottom:4px;display:block;
+    }
+    .login-sub{color:var(--muted);font-size:13px;margin-bottom:28px}
+    .login-field{margin-bottom:16px}
+    .login-field label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.07em}
+    .login-field input{
+      width:100%;padding:12px 14px;border:1.5px solid var(--line);
+      border-radius:var(--r-sm);background:var(--card);color:var(--text);
+      font:inherit;font-size:15px;outline:none;
+      transition:border-color var(--transition),box-shadow var(--transition);
+    }
+    .login-field input:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(155,69,33,.12)}
+    .login-btn{
+      width:100%;margin-top:8px;padding:14px;
+      background:var(--acc);color:#fff;border:none;
+      border-radius:var(--r-sm);font:600 15px 'DM Sans',sans-serif;
+      cursor:pointer;
+      box-shadow:0 4px 14px rgba(155,69,33,.4);
+      transition:all var(--transition);
+    }
+    .login-btn:hover{background:var(--acc2);transform:translateY(-1px);box-shadow:0 6px 20px rgba(155,69,33,.45)}
+    .login-btn:active{transform:translateY(0)}
+
+    /* ══════════════════ APP SHELL ══════════════════ */
+    .app{display:flex;min-height:100dvh}
+
+    /* ── Sidebar ── */
+    .sidebar{
+      width:230px;flex-shrink:0;
+      background:var(--nav);
+      display:flex;flex-direction:column;
+      position:fixed;top:0;left:0;bottom:0;z-index:50;
+      transition:transform var(--transition);
+    }
+    .sidebar-logo{padding:24px 20px 18px;border-bottom:1px solid rgba(255,255,255,.07)}
+    .sidebar-brand{
+      font-family:'Playfair Display',serif;
+      font-style:italic;font-size:22px;color:#fff;
+      display:block;margin-bottom:2px;
+    }
+    .sidebar-tagline{font-size:10px;color:var(--nav-text);text-transform:uppercase;letter-spacing:.1em}
+    .sidebar-biz{
+      margin:10px;
+      background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);
+      border-radius:var(--r-xs);padding:6px 8px;
+    }
+    .sidebar-biz label{font-size:9px;color:var(--nav-text);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:3px}
+    .sidebar-biz select{
+      background:transparent;border:none;color:#fff;
+      font-size:13px;font-weight:500;width:100%;
+      padding:0;outline:none;cursor:pointer;
+    }
+    .sidebar-biz select option{background:var(--nav2);color:#fff}
+    .sidebar-nav{flex:1;padding:8px;overflow-y:auto}
+    .nav-section{font-size:9px;font-weight:700;color:var(--nav-text);text-transform:uppercase;letter-spacing:.1em;padding:10px 10px 4px;margin-top:4px}
+    .nav-item{
+      display:flex;align-items:center;gap:10px;width:100%;
+      padding:10px 12px;border-radius:var(--r-xs);
+      border:none;background:none;
+      color:var(--nav-text);font-size:13px;font-weight:500;
+      cursor:pointer;text-align:left;
+      transition:all .15s;margin-bottom:1px;
+      position:relative;
+    }
+    .nav-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.8)}
+    .nav-item.active{background:rgba(224,112,64,.18);color:#fff;font-weight:600}
+    .nav-item.active::before{
+      content:'';position:absolute;left:0;top:25%;bottom:25%;
+      width:3px;background:var(--nav-accent);border-radius:0 2px 2px 0;
+    }
+    .nav-item.hidden{display:none}
+    .nav-icon{font-size:15px;width:18px;text-align:center;flex-shrink:0}
+    .sidebar-footer{padding:10px;border-top:1px solid rgba(255,255,255,.07)}
+    .sidebar-user{padding:8px 10px;margin-bottom:6px}
+    .sidebar-user-name{font-size:13px;font-weight:600;color:#fff;display:block}
+    .sidebar-user-role{font-size:11px;color:var(--nav-text)}
+    .sidebar-signout{
+      width:100%;padding:9px;border-radius:var(--r-xs);
+      background:rgba(176,32,32,.15);border:1px solid rgba(176,32,32,.25);
+      color:#f87171;font-size:13px;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;gap:6px;
+      transition:all .15s;
+    }
+    .sidebar-signout:hover{background:rgba(176,32,32,.3)}
+
+    /* ── Overlay ── */
+    .sidebar-overlay{
+      display:none;position:fixed;inset:0;
+      background:rgba(0,0,0,.55);z-index:49;
+      backdrop-filter:blur(3px);
+    }
+    .sidebar-overlay.show{display:block}
+
+    /* ── Main content ── */
+    .main{margin-left:230px;flex:1;min-width:0;padding:28px}
+
+    /* ── Mobile header ── */
+    .mobile-header{
+      display:none;position:fixed;top:0;left:0;right:0;height:56px;
+      background:var(--nav);z-index:48;
+      padding:0 14px;
+      align-items:center;justify-content:space-between;
+      border-bottom:1px solid rgba(255,255,255,.07);
+    }
+    .mobile-header-brand{
+      font-family:'Playfair Display',serif;
+      font-style:italic;font-size:20px;color:#fff;
+    }
+    .mobile-header-right{display:flex;align-items:center;gap:8px}
+    .hamburger{
+      background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);
+      border-radius:var(--r-xs);color:#fff;
+      padding:7px 10px;font-size:16px;cursor:pointer;
+      min-height:unset;
+    }
+    .hamburger:hover{background:rgba(255,255,255,.12)}
+    .floating-menu-btn{display:none;position:fixed;right:14px;bottom:18px;z-index:60;width:56px;height:56px;border:none;border-radius:999px;background:var(--nav);color:#fff;box-shadow:0 10px 24px rgba(0,0,0,.22);font-size:22px}
+    .floating-menu-btn:hover{background:var(--nav2)}
+
+    /* ── Bottom nav (phone) ── */
+    .bottom-nav{display:none}
+    .bottom-nav-item{min-height:unset}
+
+    /* ══════════════════ CARDS ══════════════════ */
+    .card{
+      background:var(--card);border:1px solid var(--line);
+      border-radius:var(--r);padding:20px;margin-bottom:16px;
+      box-shadow:var(--shadow-sm);
+    }
+    .card-inner{
+      background:var(--bg);border:1px solid var(--line2);
+      border-radius:var(--r-sm);padding:14px;margin-top:14px;
+    }
+    .section-title{font-size:17px;font-weight:700;margin:0 0 16px;color:var(--text)}
+    .page-title{
+      font-family:'Playfair Display',serif;
+      font-size:24px;font-weight:600;
+      margin:0 0 20px;color:var(--text);
+      letter-spacing:-.2px;
+    }
+
+    /* ══════════════════ SUMMARY CARDS ══════════════════ */
+    .panel-summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+    .summary-card{
+      background:var(--card);border:1px solid var(--line);
+      border-radius:var(--r);padding:18px 20px;
+      position:relative;overflow:hidden;
+      box-shadow:var(--shadow-sm);
+      transition:transform var(--transition),box-shadow var(--transition);
+    }
+    .summary-card:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+    .summary-card.clickable{cursor:pointer}
+    .summary-card.clickable:focus-visible{
+      outline:3px solid rgba(155,69,33,.18);
+      outline-offset:2px;
+    }
+    .summary-card.clickable .summary-card-link{
+      margin-top:8px;font-size:12px;font-weight:600;color:var(--acc);
+      display:inline-flex;align-items:center;gap:4px;
+    }
+    .summary-card::after{
+      content:'';position:absolute;
+      top:0;left:0;right:0;height:3px;
+      background:var(--acc);
+    }
+    .summary-card.ok::after{background:var(--ok)}
+    .summary-card.danger::after{background:var(--danger)}
+    .summary-card .s-label{
+      font-size:10px;font-weight:700;
+      text-transform:uppercase;letter-spacing:.08em;
+      color:var(--muted);margin-bottom:8px;
+    }
+    .summary{font-size:26px;font-weight:600;letter-spacing:-.4px;line-height:1.1}
+
+    /* ══════════════════ FORMS ══════════════════ */
+    .form-group{margin-bottom:14px}
+    .form-label,.form-group>label{
+      display:block;font-size:11px;font-weight:700;
+      color:var(--muted);margin-bottom:5px;
+      text-transform:uppercase;letter-spacing:.06em;
+    }
+    input,select,textarea,button{font:inherit}
+    input,select,textarea{
+      width:100%;min-width:0;max-width:100%;
+      padding:10px 13px;
+      border:1.5px solid var(--line);border-radius:var(--r-sm);
+      background:var(--card);color:var(--text);font-size:15px;
+      outline:none;transition:border-color .15s,box-shadow .15s;
+    }
+    input:focus,select:focus,textarea:focus{
+      border-color:var(--acc);
+      box-shadow:0 0 0 3px rgba(155,69,33,.1);
+    }
+    input::placeholder{color:var(--muted)}
+    input[disabled],select[disabled]{background:var(--bg2);color:var(--muted);cursor:not-allowed}
+    select{
+      appearance:none;-webkit-appearance:none;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 5 5-5z' fill='%239a8e83'/%3E%3C/svg%3E");
+      background-repeat:no-repeat;background-position:right 12px center;
+      padding-right:34px;
+    }
+    input[type="date"],input[type="month"]{
+      -webkit-appearance:none;
+      appearance:none;
+      max-width:100%;
+    }
+
+    /* ══════════════════ BUTTONS ══════════════════ */
+    button{cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:all .15s}
+    button:active{transform:scale(.97)}
+    .btn{
+      padding:9px 16px;border-radius:var(--r-sm);
+      border:1.5px solid var(--line);background:var(--card);
+      color:var(--text2);font-size:14px;font-weight:500;
+    }
+    .btn:hover{border-color:var(--acc);color:var(--acc);background:var(--acc-xlight)}
+    .btn-primary{
+      background:var(--acc);color:#fff;border:none;
+      padding:10px 20px;border-radius:var(--r-sm);
+      font-size:14px;font-weight:600;
+      box-shadow:0 2px 8px rgba(155,69,33,.3);
+    }
+    .btn-primary:hover{background:var(--acc2);transform:translateY(-1px);box-shadow:0 4px 14px rgba(155,69,33,.4)}
+    .btn-sm{padding:6px 12px;font-size:13px;border-radius:var(--r-xs);border:1.5px solid var(--line);background:var(--card);color:var(--text2)}
+    .btn-sm:hover{border-color:var(--acc);color:var(--acc)}
+    .btn-danger{background:var(--danger-bg);color:var(--danger);border:1.5px solid rgba(176,32,32,.2)}
+    .btn-danger:hover{background:var(--danger);color:#fff}
+    .mini{
+      font-size:12px;padding:5px 10px;border-radius:var(--r-xs);
+      border:1px solid var(--line);background:var(--card);color:var(--text2);
+    }
+    .mini:hover{border-color:var(--acc);color:var(--acc)}
+
+    /* ══════════════════ TABS (masaüstü) ══════════════════ */
+    .tabs-card{display:none} /* sidebar aldı, gizli */
+    .tab{}
+
+    /* ══════════════════ BADGES ══════════════════ */
+    .badge{
+      display:inline-flex;align-items:center;
+      padding:3px 10px;border-radius:999px;
+      font-size:11px;font-weight:700;
+      background:var(--acc-light);color:var(--acc);
+      border:1px solid rgba(155,69,33,.15);
+    }
+    .badge-ok{background:var(--ok-bg);color:var(--ok);border-color:rgba(26,102,65,.15)}
+    .badge-danger{background:var(--danger-bg);color:var(--danger);border-color:rgba(176,32,32,.15)}
+    .badge-warn{background:var(--warn-bg);color:var(--warn);border-color:rgba(154,92,0,.15)}
+
+    /* ══════════════════ TABLES ══════════════════ */
+    .scroll-x,.desktop-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r-sm)}
+    table{width:100%;border-collapse:collapse}
+    thead th{
+      padding:10px 14px;background:var(--bg2);
+      border-bottom:1.5px solid var(--line);
+      text-align:left;font-size:11px;font-weight:700;
+      text-transform:uppercase;letter-spacing:.06em;color:var(--muted);white-space:nowrap;
+    }
+    td{padding:11px 14px;border-bottom:1px solid var(--line2);font-size:14px;vertical-align:middle}
+    tbody tr:last-child td{border-bottom:none}
+    tbody tr:hover td{background:var(--acc-xlight)}
+    .desktop-table{width:100%;border-collapse:collapse}
+
+    /* Sticky tablo */
+    .sticky-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .sticky-table{width:100%;border-collapse:collapse}
+    .sticky-table thead th{padding:10px 14px;background:var(--bg2);border-bottom:1.5px solid var(--line);text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);white-space:nowrap}
+    .sticky-table td{padding:11px 14px;border-bottom:1px solid var(--line2);font-size:14px;vertical-align:middle;white-space:nowrap}
+    .sticky-table tbody tr:hover td{background:var(--acc-xlight)}
+    .sticky-table tbody tr:last-child td{border-bottom:none}
+    .sticky-table th:first-child,.sticky-table td:first-child{
+      position:sticky;left:0;z-index:2;
+      background:var(--card);border-right:1.5px solid var(--line);min-width:130px;
+    }
+    .sticky-table thead th:first-child{background:var(--bg2);z-index:3}
+    .sticky-table tbody tr:hover td:first-child{background:var(--acc-xlight)}
+
+    /* ══════════════════ MODAL ══════════════════ */
+    .modal-backdrop{
+      position:fixed;inset:0;background:rgba(0,0,0,.55);
+      backdrop-filter:blur(4px);
+      display:flex;align-items:flex-end;justify-content:center;
+      z-index:100;
+    }
+    .modal-backdrop.hidden{display:none!important}
+    .modal{
+      background:var(--card);
+      border-radius:24px 24px 0 0;
+      width:100%;max-width:720px;
+      max-height:92vh;overflow-y:auto;
+      padding:0 22px 28px;
+      box-shadow:0 -8px 40px rgba(0,0,0,.15);
+      animation:sheetUp .22s cubic-bezier(.4,0,.2,1) both;
+    }
+    @keyframes sheetUp{from{transform:translateY(30px);opacity:.6}to{transform:translateY(0);opacity:1}}
+    .modal-handle{
+      width:40px;height:4px;background:var(--line);
+      border-radius:2px;margin:12px auto 18px;
+    }
+    .modal-head{
+      display:flex;justify-content:space-between;align-items:flex-start;
+      gap:12px;margin-bottom:18px;
+      padding-bottom:14px;border-bottom:1px solid var(--line2);
+      position:sticky;top:0;background:var(--card);z-index:5;padding-top:4px;
+    }
+    .modal-title{font-size:18px;font-weight:700;font-family:'Playfair Display',serif;letter-spacing:-.1px}
+
+    /* ══════════════════ LAYOUT HELPERS ══════════════════ */
+    .wrap{padding:0}
+    .row{display:flex;gap:10px;align-items:center}
+    .row-between{display:flex;justify-content:space-between;align-items:center;gap:10px}
+    .grid{display:grid;gap:12px}
+    .grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+    @media(max-width:900px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}}
+    .muted{color:var(--muted);font-size:13px;line-height:1.4}
+    .hidden{display:none}
+    .ok{color:var(--ok)}.danger{color:var(--danger)}.warn{color:var(--warn)}
+    .nowrap{white-space:nowrap}
+    .att-select{min-width:130px}
+
+    /* ══════════════════ PUANTAJ ══════════════════ */
+    .att-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .att-desktop-table{width:100%;border-collapse:collapse}
+    .att-desktop-table thead th{padding:10px 14px;background:var(--bg2);border-bottom:1.5px solid var(--line);text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+    .att-desktop-table td{padding:10px 14px;border-bottom:1px solid var(--line2);font-size:14px;vertical-align:middle}
+    .att-desktop-table tbody tr:hover td{background:var(--acc-xlight)}
+    .att-mobile-list{display:none}
+    .attendance-legend{
+      display:flex;flex-wrap:wrap;align-items:center;
+      gap:4px 6px;margin-top:4px
+    }
+    .attendance-legend span{
+      white-space:nowrap;
+      padding:2px 7px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:var(--bg2);
+      font-size:12px;
+      line-height:1.2;
+      color:var(--text2)
+    }
+
+    /* ══════════════════ HAREKET KARTI ══════════════════ */
+    .movement-mobile-list{display:none}
+    .movement-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);padding:14px;margin-bottom:8px;box-shadow:var(--shadow-sm)}
+    .movement-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
+    .movement-card-type{font-weight:700;font-size:14px}
+    .movement-card-date{font-size:12px;color:var(--muted)}
+    .movement-card-desc{font-size:13px;color:var(--text2);margin-bottom:8px}
+    .movement-card-amounts{display:flex;gap:16px;margin-bottom:6px;flex-wrap:wrap}
+    .movement-card-amount{font-size:13px;font-weight:600}
+    .movement-card-amount .lbl{font-size:11px;color:var(--muted);font-weight:500;display:block}
+    .movement-card-balance{font-size:12px;color:var(--muted);border-top:1px solid var(--line2);padding-top:7px;margin-top:4px}
+    .movement-card-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:1px solid var(--line2)}
+    .movement-card-actions button{flex:1;font-size:12px;min-height:36px}
+
+    /* ══════════════════ MOBİL KARTLAR ══════════════════ */
+    .mobile-card-list{display:none}
+    .mobile-item{
+      background:var(--card);border:1px solid var(--line);
+      border-radius:var(--r-sm);padding:14px;margin-bottom:10px;
+      box-shadow:var(--shadow-sm);
+      transition:box-shadow .15s;
+    }
+    .mobile-item:active{box-shadow:none}
+    .mobile-item-title{font-weight:700;font-size:15px;color:var(--text);margin-bottom:10px}
+    .mobile-kv{display:grid;grid-template-columns:90px 1fr;gap:5px 10px;font-size:13px;margin:3px 0}
+    .mobile-kv .k{color:var(--muted);font-weight:600}
+    .mobile-kv .v{color:var(--text2);font-weight:500}
+    .mobile-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:10px;border-top:1px solid var(--line2)}
+    .mobile-actions button{flex:1 1 auto;min-width:72px;min-height:40px;font-size:13px}
+    .panel-payment-mobile{display:grid;gap:8px}
+    .panel-payment-mobile .mobile-item{margin-bottom:0}
+
+    /* ══════════════════ TABLET ══════════════════ */
+    @media(max-width:900px){
+      .sidebar{transform:translateX(-230px)}
+      .sidebar.open{transform:translateX(0)}
+      .main{margin-left:0;padding:68px 16px 20px}
+      .mobile-header{display:flex}
+      .floating-menu-btn{display:none}
+    }
+
+    /* ══════════════════ TELEFON ══════════════════ */
+    @media(max-width:520px){
+      .main{padding:62px 12px 88px}
+      .card{padding:14px;border-radius:var(--r-sm);margin-bottom:10px}
+      .modal{border-radius:20px 20px 0 0;padding:0 16px 24px}
+      .floating-menu-btn{display:flex;align-items:center;justify-content:center}
+      .mobile-header .hamburger{display:none}
+      .mobile-header{justify-content:center}
+      .mobile-header-right{position:absolute;right:12px}
+      .row,.row-between{flex-wrap:wrap}
+      .row > *,.row-between > *{min-width:0}
+      .row-between > div{max-width:100%}
+
+      /* Tablolar → kart */
+      .mobile-card-list{display:block}
+      .desktop-table{display:none!important}
+      .desktop-table-wrap{display:none!important}
+      #tab-employees .desktop-table{display:table!important}
+      #tab-employees .desktop-table-wrap{display:block!important;overflow-x:auto}
+      #tab-employees table{min-width:800px}
+
+      /* Puantaj mobil */
+      .att-desktop-table{display:none}
+      .att-mobile-list{display:block}
+      .attendance-legend{
+        gap:4px;
+        margin-top:6px;
+        flex-wrap:nowrap;
+        overflow-x:auto;
+        overflow-y:hidden;
+        -webkit-overflow-scrolling:touch;
+        scrollbar-width:none;
+      }
+      .attendance-legend::-webkit-scrollbar{display:none}
+      .attendance-legend span{
+        font-size:10px;
+        padding:2px 5px;
+        flex:0 0 auto;
+      }
+      .row > input[type="date"],
+      .row > input[type="month"],
+      .row > select{
+        min-width:0;
+        max-width:100%;
+      }
+      .row > input[type="date"],
+      .row > input[type="month"]{
+        flex:1 1 0;
+      }
+      #employeeEditModal .desktop-table{display:table!important}
+      #employeeEditModal .scroll-x{display:block!important;overflow-x:auto}
+      #employeeEditModal table{min-width:560px}
+      .att-mobile-row{
+        display:grid;grid-template-columns:1fr auto;
+        grid-template-areas:"name status";
+        gap:8px 10px;padding:12px;
+        background:var(--card);border:1px solid var(--line);
+        border-radius:var(--r-sm);margin-bottom:8px;align-items:center;
+      }
+      .att-name{grid-area:name;font-weight:700;font-size:14px}
+      .att-name span{display:block;font-size:11px;color:var(--muted);font-weight:400;margin-top:1px}
+      .att-status{grid-area:status}
+      .att-status select{padding:8px 10px;border-radius:var(--r-xs);border:1.5px solid var(--line);font-size:14px;background:var(--card);font-weight:600;width:auto;min-width:120px}
+      .att-note{grid-area:note}
+      .att-note input{padding:7px 10px;font-size:13px;border-radius:var(--r-xs);border:1px solid var(--line2);background:var(--bg)}
+
+      /* Hareket modal mobil */
+      #movementModal .sticky-table-wrap .sticky-table{display:none}
+      .movement-mobile-list{display:block}
+      #tab-stock .card-inner .grid.grid-4{grid-template-columns:1fr}
+
+      /* Input büyütme (iOS zoom engeli) */
+      input,select,textarea{font-size:16px}
+      button{min-height:44px}
+      .mini{min-height:36px}
+      .btn-sm{min-height:36px}
+
+      /* Panel özet */
+      .panel-summary-grid{gap:8px}
+      .panel-summary-grid .summary{font-size:20px}
+      .summary-card{padding:12px 14px}
+      .summary-card .s-label{font-size:9px}
+
+      /* BOTTOM NAV */
+      .bottom-nav{ display:none!important; }
+      .bottom-nav-item{
+        flex:1;display:flex;flex-direction:column;
+        align-items:center;gap:3px;
+        border:none;background:none;padding:5px 2px;
+        font-size:10px;font-weight:600;
+        color:var(--nav-text);border-radius:var(--r-xs);
+        transition:color .15s;min-height:unset;
+      }
+      .bottom-nav-item .nav-icon{font-size:21px;line-height:1.1;transition:transform .15s}
+      .bottom-nav-item.active{color:rgba(255,255,255,.9)}
+      .bottom-nav-item.active .nav-icon{
+        background:rgba(224,112,64,.22);
+        border-radius:8px;padding:4px 12px;
+        transform:scale(1.05);
+      }
+    }
+  </style>
+</head>
+<body>
+<div id="loginView" class="login-page">
+  <div class="login-box">
+    <span class="login-logo">Galata à la carte</span>
+    <div class="login-sub">Ön muhasebe & kasa yönetim paneli</div>
+    <div class="login-field">
+      <label>E-posta</label>
+      <input id="email" type="email" placeholder="ornek@galata.com" autocomplete="email" />
+    </div>
+    <div class="login-field">
+      <label>Şifre</label>
+      <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" />
+    </div>
+    <button class="login-btn" onclick="signIn()">Giriş Yap</button>
+    <div id="loginMsg" class="muted" style="margin-top:12px;text-align:center"></div>
+  </div>
+</div>
+
+<!-- Overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<div id="appView" class="hidden">
+
+  <!-- MOBİL HEADER -->
+  <header class="mobile-header">
+    <button class="hamburger" onclick="toggleSidebar()">☰</button>
+    <span class="mobile-header-brand">Galata à la carte</span>
+    <div class="mobile-header-right">
+      <span id="roleBadgeMobile" class="badge" style="font-size:10px">—</span>
+    </div>
+  </header>
+  <button class="floating-menu-btn" onclick="toggleSidebar()" aria-label="Menüyü aç">☰</button>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <span class="sidebar-brand">Galata à la carte</span>
+      <span class="sidebar-tagline">Yönetim Paneli</span>
+    </div>
+    <div class="sidebar-biz">
+      <label>Aktif İşletme</label>
+      <select id="businessSelect" onchange="changeBusiness()"></select>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section">Menü</div>
+      <button class="nav-item active" data-tab="panel" onclick="showTab('panel',this);closeSidebar()">
+        <span class="nav-icon">📊</span>Panel
+      </button>
+      <button class="nav-item" data-tab="cash" onclick="showTab('cash',this);closeSidebar()">
+        <span class="nav-icon">💵</span>Kasa
+      </button>
+      <button class="nav-item" data-tab="suppliers" onclick="showTab('suppliers',this);closeSidebar()">
+        <span class="nav-icon">🏪</span>Tedarikçiler
+      </button>
+      <button class="nav-item" data-tab="employees" onclick="showTab('employees',this);closeSidebar()">
+        <span class="nav-icon">👥</span>Personel
+      </button>
+      <button class="nav-item" data-tab="stock" onclick="showTab('stock',this);closeSidebar()">
+        <span class="nav-icon">📦</span>Stok
+      </button>
+      <div class="nav-section">Yönetim</div>
+      <button class="nav-item" data-tab="settings" onclick="showTab('settings',this);closeSidebar()">
+        <span class="nav-icon">⚙️</span>Ayarlar
+      </button>
+      <button class="nav-item" data-tab="users" onclick="showTab('users',this);closeSidebar()">
+        <span class="nav-icon">🔐</span>Kullanıcılar
+      </button>
+    </div>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <span class="sidebar-user-name" id="sidebarUserName">—</span>
+        <span class="sidebar-user-role" id="sidebarRole">—</span>
+      </div>
+      <button class="sidebar-signout" onclick="signOut()">🚪 Çıkış Yap</button>
+    </div>
+  </nav>
+
+  <!-- ANA İÇERİK -->
+  <div class="main" id="mainContent">
+
+  <!-- Gizli eski elementler (JS uyumu için) -->
+  <div style="display:none">
+    <span id="roleBadge" class="badge">—</span>
+    <input id="userInfo" disabled />
+    <input id="statusInfo" disabled />
+  </div>
+
+  <!-- Tab butonları gizli (sidebar aldı) -->
+  <div class="tabs-card" style="display:none">
+    <div class="tabs">
+      <button class="tab active" data-tab="panel">Panel</button>
+      <button class="tab" data-tab="suppliers">Tedarikçi</button>
+      <button class="tab" data-tab="cash">Kasa</button>
+      <button class="tab" data-tab="employees">Personel</button>
+      <button class="tab" data-tab="stock">Stok</button>
+      <button class="tab" data-tab="settings">Ayarlar</button>
+      <button class="tab" data-tab="users">Kullanıcılar</button>
+    </div>
+  </div>
+
+    <div id="tab-panel" class="card">
+      <div class="row-between" style="margin-bottom:12px">
+        <div class="section-title">📊 Panel</div>
+        <div style="min-width:220px">
+          <div class="muted">Tarih</div>
+          <input id="panelDate" type="date" onchange="renderSummary()" />
+        </div>
+      </div>
+
+      <div class="panel-summary-grid">
+        <div class="summary-card ok">
+          <div class="s-label">💰 Giren</div>
+          <div id="sumCashIn" class="summary ok" style="margin-top:6px">₺0</div>
+        </div>
+        <div class="summary-card danger">
+          <div class="s-label">💸 Çıkan</div>
+          <div id="sumCashOut" class="summary danger" style="margin-top:6px">₺0</div>
+        </div>
+        <div class="summary-card">
+          <div class="s-label">📊 Net</div>
+          <div id="sumCashNet" class="summary" style="margin-top:6px">₺0</div>
+        </div>
+      </div>
+
+      <div class="card-inner" style="margin-top:14px">
+        <div class="row-between">
+          <div>
+            <b>Ödeme Yöntemine Göre Kasa</b>
+            <div class="muted">Seçilen tarihte Nakit, banka ve kart kırılımı.</div>
+          </div>
+        </div>
+        <table class="desktop-table" style="margin-top:12px">
+          <thead>
+            <tr>
+              <th>Kasa / Ödeme Yöntemi</th>
+              <th>Giren</th>
+              <th>Çıkan</th>
+              <th>Net</th>
+            </tr>
+          </thead>
+          <tbody id="paymentSummaryTable"></tbody>
+        </table>
+        <div id="paymentSummaryMobile" class="mobile-card-list panel-payment-mobile"></div>
+      </div>
+    </div>
+
+    <div id="tab-suppliers" class="card hidden">
+      <div class="row-between">
+        <div class="section-title">🏪 Tedarikçiler</div>
+        <button class="btn-primary" onclick="createSupplier()">+ Tedarikçi Ekle</button>
+      </div>
+      <div class="grid grid-2" style="margin-bottom:12px">
+        <input id="supplierName" placeholder="Tedarikçi adı" />
+        <input id="supplierOpening" type="number" step="0.01" placeholder="Açılış bakiyesi" />
+      </div>
+      <div class="card" class="card-inner" style="">
+        <div class="muted">Toplam Tedarikçi Bakiyesi</div>
+        <div id="supplierTotalBalance" class="summary">₺0</div>
+      </div>
+      <table class="desktop-table">
+        <thead><tr><th>Ad</th><th>Açılış</th><th>Bakiye</th><th>İşlem</th></tr></thead>
+        <tbody id="supplierTable"></tbody>
+      </table>
+      <div id="supplierMobileList" class="mobile-card-list"></div>
+    </div>
+
+    <div id="tab-cash" class="card hidden">
+      <div class="section-title">💵 Kasa</div>
+
+      <div class="card-inner" style="margin-bottom:12px">
+        <div class="grid grid-4" style="margin-bottom:12px">
+          <select id="cashType">
+            <option value="cikan">Kasa Çıkan</option>
+            <option value="giren">Kasa Giren</option>
+            <option value="narpos">NarPOS</option>
+            <option value="kk">KK</option>
+            <option value="kesinti">Kesinti</option>
+          </select>
+          <input id="cashAmount" type="number" step="0.01" placeholder="Tutar" />
+          <select id="cashPaymentMethod"></select>
+          <select id="cashDepartment" onchange="onCashDepartmentChange()"></select>
+          <select id="cashSupplier" class="hidden"></select>
+          <select id="cashEmployee" class="hidden"></select>
+          <input id="cashDesc" placeholder="Açıklama" />
+        </div>
+        <button class="btn-primary" style="min-width:160px" onclick="createCash()">+ Kasa Kaydı Ekle</button>
+        <div id="cashMsg" class="muted" style="margin-top:10px"></div>
+      </div>
+
+      <div class="card-inner">
+        <div class="row-between" style="margin-bottom:10px">
+          <div>
+            <b>Kasa Hareket Listesi</b>
+            <div class="muted">Tarih, tip, ödeme yöntemi, departman ve açıklamaya göre filtreleyebilirsin.</div>
+          </div>
+          <div class="badge" id="cashListCount">0 kayıt</div>
+        </div>
+
+        <div class="grid grid-4" style="margin-bottom:12px">
+          <input id="cashFilterDateFrom" type="date" onchange="renderCash()" />
+          <input id="cashFilterDateTo" type="date" onchange="renderCash()" />
+          <select id="cashFilterType" onchange="renderCash()"></select>
+          <select id="cashFilterPayment" onchange="renderCash()"></select>
+          <select id="cashFilterDepartment" onchange="renderCash()"></select>
+          <input id="cashFilterText" placeholder="Açıklama / kişi / tedarikçi ara" oninput="renderCash()" />
+          <button onclick="resetCashFilters()">Filtreleri Temizle</button>
+        </div>
+
+        <div class="desktop-table-wrap">
+          <table class="desktop-table" style="margin-top:12px">
+            <thead><tr><th>Tarih</th><th>Tip</th><th>Tutar</th><th>Ödeme Yöntemi</th><th>Departman</th><th>Bağlantı</th><th>Açıklama</th><th>İşlem</th></tr></thead>
+            <tbody id="cashTable"></tbody>
+          </table>
+        </div>
+        <div id="cashMobileList" class="mobile-card-list"></div>
+      </div>
+    </div>
+
+    <div id="tab-employees" class="card hidden">
+      <div class="row-between">
+        <div>
+          <div class="section-title">👥 Personel & Puantaj</div>
+          <div class="muted">Tarihe göre günlük puantaj gir, geçmiş günleri kontrol et.</div>
+        </div>
+        <button class="btn-primary" onclick="createEmployee()">+ Personel Ekle</button>
+      </div>
+
+      <div class="grid grid-3" style="margin-bottom:12px">
+        <input id="employeeName" placeholder="Ad Soyad" />
+        <input id="employeeRole" placeholder="Görev" />
+        <input id="employeePhone" placeholder="Telefon" />
+        <input id="employeeHireDate" type="date" title="İşe Başlama Tarihi" />
+        <input id="employeeNationalId" placeholder="TC Kimlik No" />
+        <input id="employeeIban" placeholder="IBAN" />
+      </div>
+
+      <div class="card" class="card-inner" style="">
+        <div class="row-between" style="margin-bottom:12px">
+          <div>
+            <b>Günlük Puantaj</b>
+            <div class="muted attendance-legend"><span>Ç: Çalıştı</span><span>Hİ: Haftalık izin</span><span>Üİ: Ücretli izin</span><span>Yİ: Yıllık izin</span><span>ÜZ: Ücretsiz izin</span><span>ÇY: Çift yevmiye</span></div>
+          </div>
+          <div style="min-width:280px">
+            <div class="muted">Puantaj Tarihi</div>
+            <div class="row">
+              <button class="mini" onclick="changeAttendanceDate(-1)">←</button>
+              <input id="attendanceDate" type="date" onchange="loadAttendanceForDate()" />
+              <button class="mini" onclick="changeAttendanceDate(1)">→</button>
+              <button class="mini" onclick="setAttendanceToday()">Bugün</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="row" style="flex-wrap:wrap;margin-bottom:12px">
+          <button class="mini" onclick="setAllAttendance('calisti')">Hepsini Çalıştı Yap</button>
+          <button class="mini" onclick="setAllAttendance('hafta_tatili')">Hepsini Haftalık İzin Yap</button>
+          <button class="mini" onclick="setAllAttendance('yillik_izin')">Hepsini Yıllık İzin Yap</button>
+          <button class="mini" onclick="clearAllAttendance()">Puantajı Temizle</button>
+          <button class="btn-primary" onclick="saveAttendanceForDate()">Puantajı Kaydet</button>
+        </div>
+
+        <div class="att-table-wrap scroll-x">
+          <table class="att-desktop-table">
+            <thead>
+              <tr>
+                <th>Personel</th>
+                <th>Görev</th>
+                <th>Durum</th>
+              </tr>
+            </thead>
+            <tbody id="attendanceTable"></tbody>
+          </table>
+        </div>
+        <!-- Mobil kart versiyonu -->
+        <div id="attendanceMobileList" class="att-mobile-list"></div>
+
+        <div class="card" style="margin-top:12px;background:#fff">
+          <b>Seçili Tarih Özeti</b>
+          <div id="attendanceSummary" class="muted" style="margin-top:8px">—</div>
+        </div>
+      </div>
+
+      <div class="card" style="background:#fff">
+        <div class="row-between">
+          <div>
+            <b>Personel Aylık Puantaj Özeti</b>
+            <div class="muted">Seçilen aya göre her personelin çalışma ve izin toplamları.</div>
+          </div>
+          <div style="min-width:220px">
+            <div class="muted">Ay</div>
+            <input id="attendanceMonth" type="month" onchange="loadMonthlyAttendance()" />
+            <div class="row" style="margin-top:8px;gap:8px">
+              <button class="mini" onclick="exportMonthlyAttendanceExcel()">Excel İndir</button>
+            </div>
+            <div class="muted" style="font-size:11px">İçinde bulunulan ayda bugün dahil bugüne kadar sayılır.</div>
+          </div>
+        </div>
+        <div class="sticky-table-wrap"><table class="sticky-table" style="margin-top:10px">
+          <thead>
+            <tr>
+              <th>Ad</th>
+              <th>Görev</th>
+              <th>Ç</th>
+              <th>Hİ</th>
+              <th>Üİ</th>
+              <th>Yİ</th>
+              <th>ÜZ</th>
+              <th>ÇY</th>
+              <th>YG</th>
+              <th>R</th>
+              <th>Yevmiye</th>
+              <th>Ödeme</th>
+              <th>Telefon</th>
+              <th>İşe Giriş</th>
+              <th>Çıkış</th>
+              <th>İşlem</th>
+            </tr>
+          </thead>
+          <tbody id="employeeTable"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+
+    <div id="tab-stock" class="card hidden">
+      <div class="row-between">
+        <div>
+          <div class="section-title">📦 Stok Paneli</div>
+          <div class="muted">Bar, mutfak ve sarf ürünleri için stok kartı, giriş, çıkış, fire, ikram ve sayım takibi.</div>
+        </div>
+      </div>
+
+      <div class="panel-summary-grid" style="margin-bottom:14px">
+        <div id="stockSummaryCardAll" class="summary-card clickable" onclick="openStockSummaryView('all')" role="button" tabindex="0" onkeydown="handleSummaryCardKey(event,'all')">
+          <div class="s-label">📦 Tüm Ürünler</div>
+          <div id="stockItemCount" class="summary">0</div>
+          <div class="summary-card-link">Listeyi aç →</div>
+        </div>
+        <div id="stockSummaryCardCritical" class="summary-card danger clickable" onclick="openStockSummaryView('critical')" role="button" tabindex="0" onkeydown="handleSummaryCardKey(event,'critical')">
+          <div class="s-label">⚠️ Kritik</div>
+          <div id="stockCriticalCount" class="summary danger">0</div>
+          <div class="summary-card-link">Raporu aç →</div>
+        </div>
+        <div id="stockSummaryCardNormal" class="summary-card ok clickable" onclick="openStockSummaryView('normal')" role="button" tabindex="0" onkeydown="handleSummaryCardKey(event,'normal')">
+          <div class="s-label">✅ Normal</div>
+          <div id="stockNormalCount" class="summary ok">0</div>
+          <div class="summary-card-link">Listeyi filtrele →</div>
+        </div>
+      </div>
+
+      <div id="stockCriticalSection" class="card-inner hidden" style="margin-bottom:12px">
+        <div class="row-between" style="margin-bottom:10px">
+          <div>
+            <b>⚠️ Kritik Stok Raporu</b>
+            <div class="muted">Minimum stok altına düşen ürünleri burada toplu görürsün.</div>
+          </div>
+          <div class="row" style="gap:8px;flex-wrap:wrap">
+            <div id="stockCriticalBadge" class="badge badge-danger">0 ürün</div>
+            <button class="mini" id="stockCriticalToggleBtn" onclick="toggleStockCriticalReport()">Raporu Kapat</button>
+          </div>
+        </div>
+        <div id="stockCriticalWrap">
+          <div class="desktop-table-wrap">
+            <table class="desktop-table">
+              <thead>
+                <tr>
+                  <th>Ürün</th>
+                  <th>Kategori</th>
+                  <th>Mevcut</th>
+                  <th>Min Stok</th>
+                  <th>Eksik</th>
+                  <th>İşlem</th>
+                </tr>
+              </thead>
+              <tbody id="stockCriticalTable"></tbody>
+            </table>
+          </div>
+          <div id="stockCriticalMobileList" class="mobile-card-list"></div>
+        </div>
+      </div>
+
+      <div class="card-inner" style="margin-bottom:12px">
+        <div class="row-between" style="margin-bottom:10px">
+          <div>
+            <b>Toplu Sayım Yükleme</b>
+            <div class="muted">Sürekli kullanılan bir alan değil. İhtiyaç olduğunda açıp toplu sayım yükleyebilirsin.</div>
+          </div>
+          <button class="mini" id="stockBulkCountToggleBtn" onclick="toggleStockBulkCount()">Aç</button>
+        </div>
+        <div id="stockBulkCountWrap" class="hidden">
+          <div class="grid grid-4" style="margin-top:12px">
+            <input id="stockBulkCountDate" type="date" />
+            <input id="stockBulkCountNote" placeholder="Toplu sayım notu opsiyonel" />
+            <button onclick="downloadStockCountTemplate()">Sayım Şablonu İndir</button>
+            <button class="btn-primary" onclick="triggerStockCountImport()">Sayım CSV Yükle</button>
+            <div class="muted" style="grid-column:1/-1">Şablonda sütunlar: <b>urun_adi</b>, <b>mevcut_stok</b>, <b>sayilan_miktar</b>, <b>note</b>. Yüklemede sadece <b>sayilan_miktar</b> dolu satırlar işlenir.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-inner" style="margin-bottom:12px">
+        <div class="row-between" style="margin-bottom:10px">
+          <div>
+            <b>🚚 Tedarikçiye Göre Stok Giriş Raporu</b>
+            <div class="muted">Hangi tedarikçiden hangi ürünü ne kadar ve kaç TL giriş yaptığını toplu görürsün.</div>
+          </div>
+          <div class="row" style="gap:8px;flex-wrap:wrap">
+            <div id="stockSupplierReportBadge" class="badge">0 satır</div>
+            <button class="mini" id="stockSupplierReportToggleBtn" onclick="toggleStockSupplierReport()">Raporu Aç</button>
+          </div>
+        </div>
+        <div id="stockSupplierReportWrap" class="hidden">
+          <div class="grid grid-4" style="margin-bottom:12px">
+            <input id="stockSupplierDateFrom" type="date" onchange="renderStockSupplierReport()" />
+            <input id="stockSupplierDateTo" type="date" onchange="renderStockSupplierReport()" />
+            <select id="stockSupplierFilter" onchange="renderStockSupplierReport()"></select>
+            <button onclick="resetStockSupplierReportFilters()">Filtreleri Temizle</button>
+          </div>
+          <div class="desktop-table-wrap">
+            <table class="desktop-table">
+              <thead>
+                <tr>
+                  <th>Tedarikçi</th>
+                  <th>Ürün</th>
+                  <th>Toplam Giriş</th>
+                  <th>Toplam Tutar</th>
+                  <th>Hareket Sayısı</th>
+                </tr>
+              </thead>
+              <tbody id="stockSupplierReportTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-inner" style="margin-bottom:12px">
+        <div class="row-between" style="margin-bottom:10px">
+          <div>
+            <b>Stok Kartı Ekle</b>
+            <div class="muted">Sürekli görünmesin; ihtiyaç olduğunda açıp yeni stok kartı ekleyebilirsin.</div>
+          </div>
+          <button class="mini" id="stockCreateCardToggleBtn" onclick="toggleStockCreateCard()">Aç</button>
+        </div>
+        <div id="stockCreateCardWrap" class="hidden">
+          <div class="grid grid-4" style="margin-top:12px">
+            <input id="stockName" placeholder="Ürün adı" />
+            <input id="stockCategory" placeholder="Kategori: Rakı, Şarap, Meze..." />
+            <input id="stockUnit" placeholder="Birim: adet, kg, lt, cl, şişe" value="adet" />
+            <input id="stockBottleSize" type="number" step="0.01" placeholder="Şişe CL opsiyonel" />
+            <input id="stockMin" type="number" step="0.01" placeholder="Minimum stok" />
+            <button class="btn-primary" onclick="createStockItem()">+ Stok Kartı Ekle</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-inner" style="margin-bottom:12px">
+        <div class="row-between" style="margin-bottom:10px">
+          <div>
+            <b>Stok Hareketi Ekle</b>
+            <div class="muted">Stok girişi, çıkışı, sayım, fire ve ikram işlemlerini gerektiğinde açıp gir.</div>
+          </div>
+          <button class="mini" id="stockMoveToggleBtn" onclick="toggleStockMoveForm()">Aç</button>
+        </div>
+        <div id="stockMoveWrap" class="hidden">
+          <div class="grid grid-4" style="margin-top:12px">
+            <select id="stockMoveItem"></select>
+            <select id="stockMoveType">
+              <option value="giris">Giriş</option>
+              <option value="cikis">Çıkış</option>
+              <option value="sayim">Sayım</option>
+              <option value="fire">Fire</option>
+              <option value="ikram">İkram</option>
+            </select>
+            <input id="stockMoveQty" type="number" step="0.01" placeholder="Miktar" />
+            <input id="stockMoveDate" type="date" />
+            <select id="stockMoveSupplier"></select>
+            <input id="stockMoveAmount" type="number" step="0.01" placeholder="Alış tutarı opsiyonel" />
+            <input id="stockMoveNote" placeholder="Not" />
+            <button class="btn-primary" onclick="createStockMovement()">+ Hareket Ekle</button>
+            <div class="muted" style="grid-column:1/-1">Not: Hareket tipi <b>Sayım</b> seçildiğinde, girilen miktar mevcut stoktan farklıysa sistem kayıt öncesi uyarı verir.</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="stockListSection" class="card-inner hidden">
+        <div class="row-between" style="margin-bottom:10px">
+          <div><b>Güncel Stok Listesi</b><div class="muted">Sayım varsa son sayımdan itibaren hesaplanır.</div></div>
+          <button class="mini" id="stockListToggleBtn" onclick="toggleStockList()">Listeyi Kapat</button>
+        </div>
+        <div id="stockListWrap">
+          <div class="grid grid-4" style="margin-bottom:12px">
+            <input id="stockFilterText" placeholder="Ürün / kategori ara" oninput="renderStock()" />
+            <select id="stockFilterStatus" onchange="renderStock()">
+              <option value="">Tüm Stoklar</option>
+              <option value="critical">Kritik Stok</option>
+              <option value="normal">Normal Stok</option>
+            </select>
+            <button onclick="resetStockFilters()">Filtreleri Temizle</button>
+          </div>
+          <div class="desktop-table-wrap">
+            <table class="desktop-table" style="margin-top:12px">
+              <thead><tr><th>Ürün</th><th>Kategori</th><th>Birim</th><th>Min</th><th>Giriş</th><th>Çıkış</th><th>Son Sayım</th><th>Mevcut</th><th>İşlem</th></tr></thead>
+              <tbody id="stockTable"></tbody>
+            </table>
+          </div>
+          <div id="stockMobileList" class="mobile-card-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-settings" class="card hidden">
+      <div class="section-title">⚙️ Ayarlar</div>
+      <div class="card" class="card-inner" style="">
+        <div class="row-between">
+          <div>
+            <b>Ödeme Yöntemleri</b>
+            <div class="muted">Kasa kayıtlarında seçilecek nakit, banka ve kart hesapları.</div>
+          </div>
+        </div>
+        <div class="grid grid-2" style="margin-top:12px">
+          <input id="paymentMethodName" placeholder="Örn: İş Bankası" />
+          <button class="btn-primary" onclick="createPaymentMethod()">Ödeme Yöntemi Ekle</button>
+        </div>
+        <table class="desktop-table" style="margin-top:12px">
+          <thead><tr><th>Ad</th><th>Durum</th><th>İşlem</th></tr></thead>
+          <tbody id="paymentMethodTable"></tbody>
+        </table>
+      </div>
+
+      <div class="card" class="card-inner" style="">
+        <div class="row-between">
+          <div>
+            <b>Departmanlar</b>
+            <div class="muted">Kasa kayıtlarında seçilecek işlem grupları: Tedarikçi, Kasa, Mutfak, Bar, Personel vb.</div>
+          </div>
+        </div>
+        <div class="grid grid-2" style="margin-top:12px">
+          <input id="departmentName" placeholder="Örn: Bahçe, Teras, Mutfak" />
+          <button class="btn-primary" onclick="createDepartment()">Departman Ekle</button>
+        </div>
+        <table class="desktop-table" style="margin-top:12px">
+          <thead><tr><th>Ad</th><th>Durum</th><th>İşlem</th></tr></thead>
+          <tbody id="departmentTable"></tbody>
+        </table>
+      </div>
+
+      <div class="card" class="card-inner" style="" id="dataManagementSection">
+        <div class="row-between">
+          <div>
+            <b>Veri Yönetimi / Temizlik</b>
+            <div class="muted">Sadece admin kullanmalıdır. Silmeden önce dışa aktarma yapman önerilir. Hareketleri silmek, kartları silmekten daha güvenlidir.</div>
+          </div>
+          <button class="mini" id="dataManagementToggleBtn" onclick="toggleDataManagement()">Aç</button>
+        </div>
+
+        <div id="dataManagementWrap" class="hidden" style="margin-top:12px">
+          <div class="card-inner" style="margin-bottom:12px;background:var(--bg)">
+            <div class="row-between" style="margin-bottom:10px">
+              <div>
+                <b>İlk Kurulum Toplu Stok Yükleme</b>
+                <div class="muted">Tüm stok kartlarını ve açılış stoklarını tek seferde içeri almak için kullanılır. Günlük kullanım için değil, ilk kurulum içindir.</div>
+              </div>
+            </div>
+            <div class="grid grid-2" style="margin-top:12px">
+              <input id="stockInitDate" type="date" />
+              <input id="stockInitNote" placeholder="Toplu ilk yükleme notu opsiyonel" />
+              <button onclick="downloadStockInitTemplate()">İlk Stok Şablonu İndir</button>
+              <button class="btn-primary" onclick="triggerStockInitImport()">Stok Şablonu Yükle</button>
+            </div>
+            <div class="muted" style="margin-top:10px">Şablon sütunları: <b>urun_adi</b>, <b>kategori</b>, <b>birim</b>, <b>sise_cl</b>, <b>min_stok</b>, <b>acilis_stogu</b>, <b>note</b>. Yüklemede ürün kartı oluşur/güncellenir; <b>acilis_stogu</b> doluysa o ürün için bir <b>sayım</b> hareketi de eklenir.</div>
+          </div>
+
+          <div class="grid grid-2">
+            <button class="btn-danger" onclick="wipeCashTransactions()">Kasa Hareketlerini Sil</button>
+            <button class="btn-danger" onclick="wipeSupplierMovements()">Tedarikçi Hareketlerini Sil</button>
+            <button class="btn-danger" onclick="wipeSuppliers()">Tedarikçi Kartlarını Sil</button>
+            <button class="btn-danger" onclick="wipeAttendanceRecords()">Puantaj Kayıtlarını Sil</button>
+            <button class="btn-danger" onclick="wipeEmployees()">Personelleri Sil</button>
+            <button class="btn-danger" onclick="wipeStockMovements()">Stok Hareketlerini Sil</button>
+            <button class="btn-danger" onclick="wipeStockItems()">Stok Kartlarını Sil</button>
+          </div>
+
+          <div id="dataManagementInfo" class="muted" style="margin-top:10px">
+            Not: Stok kartlarını silmek stok hareketlerini de kaldırabilir. Tedarikçi kartlarını silmeden önce hareketlerini silmek daha güvenlidir.
+          </div>
+        </div>
+      </div>
+    </div>
+
+<div id="tab-users" class="card hidden">
+      <div class="section-title">🔐 Kullanıcılar & Yetkiler</div>
+      <div class="muted" style="margin-bottom:12px">Önce kullanıcıyı Supabase Authentication > Users bölümünde oluştur. Sonra buradan işletmeye bağla ve göreceği panelleri seç.</div>
+
+      <div class="card" class="card-inner" style="">
+        <b>Yeni Kullanıcı Bağla</b>
+        <div class="grid grid-4" style="margin-top:12px">
+          <input id="newUserEmail" type="email" placeholder="E-posta" />
+          <input id="newUserName" placeholder="Ad Soyad" />
+          <select id="newUserRole">
+            <option value="kasa">Kasa</option>
+            <option value="yonetici">Yönetici</option>
+            <option value="muhasebe">Muhasebe</option>
+            <option value="admin">Admin</option>
+          </select>
+          <button class="btn-primary" onclick="linkUserByEmail()">Kullanıcıyı Bağla</button>
+        </div>
+      </div>
+
+      <div class="card" style="background:#fff">
+        <b>Mevcut Kullanıcılar</b>
+        <div class="scroll-x">
+          <table class="desktop-table" style="margin-top:10px">
+            <thead>
+              <tr>
+                <th>Kullanıcı</th>
+                <th>Rol</th>
+                <th>Aktif</th>
+                <th>Panel</th>
+                <th>Kasa</th>
+                <th>Tedarikçi</th>
+                <th>Personel</th>
+                <th>Ayarlar</th>
+                <th>Kullanıcılar</th>
+                <th>Kasa Düzenle</th>
+                <th>Kasa Sil</th>
+                <th>Personel TC/IBAN</th>
+                <th>Kaydet</th>
+              </tr>
+            </thead>
+            <tbody id="usersTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  <div id="cashEditModal" class="modal-backdrop hidden">
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <div class="modal-title">Kasa Kaydı Düzenle</div>
+          <div class="muted">Yanlış girilen kasa hareketini silmeden düzeltebilirsin.</div>
+        </div>
+        <button class="btn-sm" onclick="closeCashEdit()">✕ Kapat</button>
+      </div>
+
+      <input type="hidden" id="editCashId" />
+
+      <div class="grid grid-3" style="margin-bottom:12px">
+        <div>
+          <div class="muted">Tarih</div>
+          <input id="editCashDate" type="date" />
+        </div>
+        <div>
+          <div class="muted">Tip</div>
+          <select id="editCashType">
+            <option value="cikan">Kasa Çıkan</option>
+            <option value="giren">Kasa Giren</option>
+            <option value="narpos">NarPOS</option>
+            <option value="kk">KK</option>
+            <option value="kesinti">Kesinti</option>
+          </select>
+        </div>
+        <div>
+          <div class="muted">Tutar</div>
+          <input id="editCashAmount" type="number" step="0.01" />
+        </div>
+        <div>
+          <div class="muted">Ödeme Yöntemi</div>
+          <select id="editCashPaymentMethod"></select>
+        </div>
+        <div>
+          <div class="muted">Departman</div>
+          <select id="editCashDepartment" onchange="onEditCashDepartmentChange()"></select>
+        </div>
+        <div>
+          <div class="muted">Bağlantı</div>
+          <select id="editCashSupplier" class="hidden"></select>
+          <select id="editCashEmployee" class="hidden"></select>
+        </div>
+        <div style="grid-column:span 3">
+          <div class="muted">Açıklama</div>
+          <input id="editCashDesc" />
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="saveCashEdit()">Kasa Kaydını Güncelle</button>
+    </div>
+  </div>
+
+  <div id="employeeEditModal" class="modal-backdrop hidden">
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <div id="employeeEditTitle" class="modal-title">Personel Düzenle</div>
+          <div id="employeeEditSummary" class="muted">Personel kartı ve seçili ayın gün gün puantaj düzenlemesi.</div>
+        </div>
+        <button class="btn-sm" onclick="closeEmployeeEdit()">✕ Kapat</button>
+      </div>
+
+      <input type="hidden" id="editEmployeeId" />
+
+      <div class="grid grid-3" style="margin-bottom:12px">
+        <div>
+          <div class="muted">Ad Soyad</div>
+          <input id="editEmployeeName" />
+        </div>
+        <div>
+          <div class="muted">Görev</div>
+          <input id="editEmployeeRole" />
+        </div>
+        <div>
+          <div class="muted">Telefon</div>
+          <input id="editEmployeePhone" />
+        </div>
+        <div>
+          <div class="muted">İşe Başlama Tarihi</div>
+          <input id="editEmployeeHireDate" type="date" />
+        </div>
+        <div>
+          <div class="muted">Çıkış Tarihi</div>
+          <input id="editEmployeeTerminationDate" type="date" />
+        </div>
+        <div>
+          <div class="muted">Durum</div>
+          <select id="editEmployeeActive">
+            <option value="true">Aktif</option>
+            <option value="false">Pasif</option>
+          </select>
+        </div>
+        <div>
+          <div class="muted">TC Kimlik No</div>
+          <input id="editEmployeeNationalId" inputmode="numeric" />
+        </div>
+        <div style="grid-column:span 2">
+          <div class="muted">IBAN</div>
+          <input id="editEmployeeIban" />
+        </div>
+      </div>
+
+      <div class="card" class="card-inner" style="">
+        <div class="row-between" style="margin-bottom:10px">
+          <div>
+            <b>Seçili Ay Puantajı</b>
+            <div class="muted">Boş bırakılan günlerde kayıt varsa silinir.</div>
+          </div>
+        </div>
+        <div class="row" style="flex-wrap:wrap;margin-bottom:12px">
+          <button class="mini" onclick="setEmployeeEditMonthAll('calisti')">Bu Ayı Çalıştı Yap</button>
+          <button class="mini" onclick="setEmployeeEditMonthAll('hafta_tatili')">Bu Ayı Haftalık İzin Yap</button>
+          <button class="mini" onclick="setEmployeeEditMonthAll('yillik_izin')">Bu Ayı Yıllık İzin Yap</button>
+          <button class="mini" onclick="setEmployeeEditMonthAll('')">Bu Ayı Temizle</button>
+          <button class="btn-primary" onclick="saveEmployeeEdit()">Değişiklikleri Kaydet</button>
+        </div>
+
+        <div class="scroll-x">
+          <table class="desktop-table">
+            <thead>
+              <tr>
+                <th>Tarih</th>
+                <th>Gün</th>
+                <th>Puantaj</th>
+                <th>Not</th>
+              </tr>
+            </thead>
+            <tbody id="employeeEditAttendanceTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card" style="background:#fff;margin-top:12px">
+        <div class="row-between">
+          <div>
+            <b>Personel Ödeme Hareketleri</b>
+            <div class="muted">Kasa defterinde Departman: Personel seçilerek yapılan ödemeler.</div>
+          </div>
+          <div id="employeeEditPaymentTotal" class="badge">₺0</div>
+        </div>
+        <table class="desktop-table" style="margin-top:10px">
+          <thead>
+            <tr>
+              <th>Tarih</th>
+              <th>Tutar</th>
+              <th>Ödeme Yöntemi</th>
+              <th>Açıklama</th>
+              <th>İşlem</th>
+            </tr>
+          </thead>
+          <tbody id="employeeEditPaymentTable"></tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="movementModal" class="modal-backdrop hidden">
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <div id="movementTitle" class="modal-title">Tedarikçi Hareketleri</div>
+          <div id="movementSummary" class="muted"></div>
+        </div>
+        <button class="btn-sm" onclick="closeMovements()">✕ Kapat</button>
+      </div>
+      <!-- Masaüstü tablo -->
+      <div class="sticky-table-wrap">
+        <table class="sticky-table">
+          <thead>
+            <tr>
+              <th>Tarih</th>
+              <th>İşlem</th>
+              <th>Açıklama</th>
+              <th>Borç Artışı</th>
+              <th>Borç Azalışı</th>
+              <th>Bakiye</th>
+              <th>İşlem</th>
+            </tr>
+          </thead>
+          <tbody id="movementTable"></tbody>
+        </table>
+      </div>
+      <!-- Mobil kart listesi -->
+      <div id="movementMobileList" class="movement-mobile-list"></div>
+    </div>
+  </div>
+
+
+  <div id="stockDetailModal" class="modal-backdrop hidden">
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <div id="stockDetailTitle" class="modal-title">Stok Detayı</div>
+          <div id="stockDetailSummary" class="muted"></div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+          <button class="btn-sm" onclick="editStockItemFromDetail()">✏ Düzenle</button>
+          <button class="btn-sm btn-danger" onclick="deleteStockItemFromDetail()">🗑 Sil</button>
+          <button class="btn-sm" onclick="closeStockDetail()">✕</button>
+        </div>
+      </div>
+
+      <input type="hidden" id="stockDetailItemId" />
+
+      <div class="panel-summary-grid" style="margin-bottom:12px">
+        <div class="summary-card">
+          <div class="muted">Mevcut</div>
+          <div id="stockDetailCurrent" class="summary">0</div>
+        </div>
+        <div class="summary-card danger">
+          <div class="muted">Min Stok</div>
+          <div id="stockDetailMin" class="summary danger">0</div>
+        </div>
+        <div class="summary-card ok">
+          <div class="muted">Son Sayım</div>
+          <div id="stockDetailCount" class="summary ok">-</div>
+        </div>
+      </div>
+
+      <div class="card-inner" style="margin-bottom:12px">
+        <div class="row-between" style="margin-bottom:10px">
+          <div>
+            <b>Hareket Geçmişi</b>
+            <div class="muted">Tarih ve tipe göre filtreleyebilir, hareketleri düzenleyip silebilirsin.</div>
+          </div>
+          <div id="stockDetailCountBadge" class="badge">0 kayıt</div>
+        </div>
+
+        <div class="grid grid-4" style="margin-bottom:12px">
+          <input id="stockDetailDateFrom" type="date" onchange="renderStockDetailRows()" />
+          <input id="stockDetailDateTo" type="date" onchange="renderStockDetailRows()" />
+          <select id="stockDetailType" onchange="renderStockDetailRows()">
+            <option value="">Tüm Hareketler</option>
+            <option value="giris">Giriş</option>
+            <option value="cikis">Çıkış</option>
+            <option value="sayim">Sayım</option>
+            <option value="fire">Fire</option>
+            <option value="ikram">İkram</option>
+          </select>
+          <input id="stockDetailText" placeholder="Not veya tedarikçi ara" oninput="renderStockDetailRows()" />
+          <button onclick="resetStockDetailFilters()">Filtreleri Temizle</button>
+        </div>
+
+        <div class="desktop-table-wrap">
+          <table class="desktop-table">
+            <thead>
+              <tr>
+                <th>Tarih</th>
+                <th>Tip</th>
+                <th>Miktar</th>
+                <th>Tedarikçi</th>
+                <th>Tutar</th>
+                <th>Not</th>
+                <th>İşlem</th>
+              </tr>
+            </thead>
+            <tbody id="stockDetailTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  </div><!-- /main -->
+
+
+</div><!-- /appView -->
+
+<input id="stockCountImportInput" type="file" accept=".csv,text/csv" class="hidden" />
+<input id="stockInitImportInput" type="file" accept=".csv,text/csv" class="hidden" />
+<script>
+const SUPABASE_URL = "https://defwmczznunqllgouims.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlZndtY3p6bnVucWxsZ291aW1zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzODY1MDcsImV4cCI6MjA4OTk2MjUwN30.1dFwTQk0aJOHuWap-myRmtQie5QXhUhMn7YZkqgSFBo";
+
+let sb = null;
+if (window.supabase && !SUPABASE_URL.includes("BURAYA_") && !SUPABASE_ANON_KEY.includes("BURAYA_")) {
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
+
+let state = {
+  session: null,
+  profile: null,
+  memberships: [],
+  activeBusinessId: null,
+  activeRole: null,
+  suppliers: [],
+  supplierBalances: [],
+  cash: [],
+  employees: [],
+  supplierMovements: [],
+  paymentMethods: [],
+  myPermissions: null,
+  users: [],
+  userPermissions: [],
+  employeePrivate: [],
+  stockItems: [],
+  stockMovements: [],
+  departments: [],
+  attendanceRecords: [],
+  monthlyAttendance: [],
+};
+
+const byId = id => document.getElementById(id);
+const money = v => new Intl.NumberFormat('tr-TR', { style:'currency', currency:'TRY' }).format(Number(v||0));
+const today = () => new Date().toISOString().slice(0,10);
+
+function msg(t){ byId('loginMsg').textContent = t || ''; }
+function showApp(ok){
+  byId('loginView').style.display = ok ? 'none' : 'flex';
+  if(ok) byId('loginView').style.display = 'none';
+  else { byId('loginView').style.display = 'flex'; byId('loginView').style.alignItems = 'center'; byId('loginView').style.justifyContent = 'center'; byId('loginView').style.minHeight = '100dvh'; }
+  byId('appView').classList.toggle('hidden', !ok);
+}
+
+function isAdmin(){
+  return state.activeRole === 'admin';
+}
+
+const roleDefaults = {
+  admin:    { can_panel:true, can_cash:true, can_suppliers:true, can_employees:true, can_stock:true, can_settings:true, can_users:true, can_cash_edit:true, can_cash_delete:true, can_supplier_edit:true, can_employee_private:true, can_stock:true },
+  yonetici: { can_panel:true, can_cash:true, can_suppliers:true, can_employees:true, can_stock:true, can_settings:true, can_users:false, can_cash_edit:true, can_cash_delete:true, can_supplier_edit:true, can_employee_private:false, can_stock:false },
+  kasa:     { can_panel:true, can_cash:true, can_suppliers:false, can_employees:false, can_stock:false, can_settings:false, can_users:false, can_cash_edit:false, can_cash_delete:false, can_supplier_edit:false, can_employee_private:false, can_stock:false },
+  muhasebe: { can_panel:true, can_cash:true, can_suppliers:true, can_employees:false, can_stock:false, can_settings:false, can_users:false, can_cash_edit:false, can_cash_delete:false, can_supplier_edit:true, can_employee_private:false, can_stock:false }
+};
+
+function hasPermission(key){
+  if(isAdmin()) return true;
+  if(state.myPermissions && typeof state.myPermissions[key] === 'boolean') return state.myPermissions[key];
+  return !!(roleDefaults[state.activeRole]?.[key]);
+}
+
+function tabPermission(tabName){
+  const map = {
+    panel: 'can_panel',
+    cash: 'can_cash',
+    suppliers: 'can_suppliers',
+    employees: 'can_employees',
+    settings: 'can_settings',
+    users: 'can_users',
+    stock: 'can_stock',
+  };
+  return hasPermission(map[tabName]);
+}
+
+
+
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+}
+function updateBottomNav(tab){
+  document.querySelectorAll('.bottom-nav-item').forEach(b=>b.classList.remove('active'));
+  var btn = document.getElementById('bnav-'+tab);
+  if(btn) btn.classList.add('active');
+  // More menüyü kapat
+  var mm = document.getElementById('moreMenu');
+  if(mm) mm.style.display='none';
+}
+
+function toggleMoreMenu(){
+  var mm = document.getElementById('moreMenu');
+  if(!mm) return;
+  mm.style.display = mm.style.display==='none' ? 'block' : 'none';
+}
+
+// More menü dışına tıklayınca kapat
+document.addEventListener('click', function(e){
+  var mm = document.getElementById('moreMenu');
+  if(mm && mm.style.display!=='none'){
+    if(!mm.contains(e.target) && !e.target.closest('#bnav-more')) mm.style.display='none';
+  }
+});
+
+// Bottom nav yetki kontrolü — gizlenecek butonlar
+function applyBottomNavPermissions(){
+  var map = {cash:'can_cash',suppliers:'can_suppliers',employees:'can_employees'};
+  Object.entries(map).forEach(([tab,perm])=>{
+    var btn = document.getElementById('bnav-'+tab);
+    if(btn) btn.style.display = hasPermission(perm) ? '' : 'none';
+  });
+
+  var more = document.getElementById('moreMenu');
+  if(more){
+    more.querySelectorAll('[data-more-tab]').forEach(function(btn){
+      var tab = btn.getAttribute('data-more-tab');
+      btn.style.display = tabPermission(tab) ? '' : 'none';
+    });
+  }
+}
+
+function applyTabPermissions(){
+  ['employeeNationalId','employeeIban'].forEach(id => {
+    const el = byId(id);
+    if(el) {
+      el.disabled = !hasPermission('can_employee_private');
+      el.placeholder = hasPermission('can_employee_private') ? el.placeholder : 'Sadece admin görebilir';
+    }
+  });
+  document.querySelectorAll('[data-tab]').forEach(btn => {
+    const tab = btn.dataset.tab;
+    if(tab) btn.classList.toggle('hidden', !tabPermission(tab));
+  });
+
+  const dm = byId('dataManagementSection');
+  if(dm) dm.classList.toggle('hidden', !isAdmin());
+
+  applyBottomNavPermissions();
+  const active = document.querySelector('.tab.active:not(.hidden)');
+  if(!active){
+    const first = document.querySelector('.tab[data-tab]:not(.hidden)');
+    if(first) showTab(first.dataset.tab, first);
+  }
+}
+
+async function loadMyPermissions(){
+  state.myPermissions = null;
+  if(!state.activeBusinessId || !state.session?.user?.id) return;
+
+  const { data, error } = await sb.from('user_panel_permissions')
+    .select('*')
+    .eq('business_id', state.activeBusinessId)
+    .eq('user_id', state.session.user.id)
+    .maybeSingle();
+
+  if(!error) state.myPermissions = data || null;
+}
+
+
+function showTab(name, el){
+  if(!tabPermission(name)) return alert('Bu ekran için yetkin yok.');
+  // Tüm nav-item ve tab aktifliğini kaldır
+  document.querySelectorAll('.tab,.nav-item').forEach(function(x){ x.classList.remove('active'); });
+  // Aynı data-tab'lı tüm butonları aktif et
+  document.querySelectorAll('[data-tab="'+name+'"]').forEach(function(x){ x.classList.add('active'); });
+  ['panel','suppliers','cash','employees','stock','settings','users'].forEach(function(t){ byId('tab-'+t).classList.add('hidden'); });
+  byId('tab-'+name).classList.remove('hidden');
+  if(name==='panel') renderSummary();
+  // Daha menüsünü kapat
+  var mm = document.getElementById('moreMenu');
+  if(mm) mm.style.display = 'none';
+}
+async function signIn(){
+  if(!sb) return msg('Supabase URL ve anon key girilmemiş.');
+  const email = byId('email').value.trim();
+  const password = byId('password').value;
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  msg(error ? error.message : 'Giriş başarılı.');
+  await boot();
+}
+async function signOut(){
+  if (!sb) return;
+  await sb.auth.signOut();
+  state = { session:null, profile:null, memberships:[], activeBusinessId:null, activeRole:null, suppliers:[], supplierBalances:[], cash:[], employees:[], supplierMovements:[], paymentMethods:[], departments:[], myPermissions:null, users:[], userPermissions:[], employeePrivate:[], attendanceRecords:[] };
+  showApp(false);
+  msg('Çıkış yapıldı.');
+}
+async function boot(){
+  if(!sb) return msg('Supabase bağlantısı hazır değil.');
+  const { data: { session } } = await sb.auth.getSession();
+  if(!session){ showApp(false); return; }
+  state.session = session;
+  const uid = session.user.id;
+
+  const [{ data: profile }, { data: memberships }] = await Promise.all([
+    sb.from('profiles').select('*').eq('id', uid).maybeSingle(),
+    sb.from('business_users').select('id,business_id,role,is_active,businesses(id,name)').eq('user_id', uid).eq('is_active', true)
+  ]);
+
+  state.profile = profile || { full_name: session.user.email, id: uid };
+  state.memberships = memberships || [];
+  state.activeBusinessId = state.memberships[0]?.business_id || null;
+  state.activeRole = state.memberships[0]?.role || null;
+
+  byId('userInfo').value = `${state.profile.full_name || ''} • ${session.user.email || ''}`;
+  byId('roleBadge').textContent = state.activeRole || '—';
+  if(byId('roleBadgeMobile')) byId('roleBadgeMobile').textContent = state.activeRole || '—';
+  if(byId('sidebarUserName')) byId('sidebarUserName').textContent = state.profile.full_name || session.user.email || '—';
+  if(byId('sidebarRole')) byId('sidebarRole').textContent = state.activeRole || '—';
+  await loadMyPermissions();
+  byId('statusInfo').value = state.activeBusinessId ? 'Hazır' : 'İşletme bağlantısı yok';
+
+  const bs = byId('businessSelect');
+  bs.innerHTML = '';
+  (state.memberships || []).forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m.business_id;
+    opt.textContent = m.businesses?.name || m.business_id;
+    bs.appendChild(opt);
+  });
+  if (state.activeBusinessId) bs.value = state.activeBusinessId;
+
+  showApp(true);
+  applyTabPermissions();
+  if (byId('panelDate') && !byId('panelDate').value) byId('panelDate').value = today();
+  if (byId('attendanceDate') && !byId('attendanceDate').value) byId('attendanceDate').value = today();
+  if (byId('attendanceMonth') && !byId('attendanceMonth').value) byId('attendanceMonth').value = today().slice(0,7);
+  await loadCore();
+}
+async function changeBusiness(){
+  state.activeBusinessId = byId('businessSelect').value || null;
+  const selected = state.memberships.find(x => x.business_id === state.activeBusinessId);
+  state.activeRole = selected?.role || null;
+  byId('roleBadge').textContent = state.activeRole || '—';
+  await loadMyPermissions();
+  applyTabPermissions();
+  await loadCore();
+}
+async function loadCore(){
+  if(!state.activeBusinessId) return;
+
+  const bid = state.activeBusinessId;
+  await ensureDefaultPaymentMethods(bid);
+  await ensureDefaultDepartments(bid);
+
+  const attendanceDate = byId('attendanceDate')?.value || today();
+  const month = byId('attendanceMonth')?.value || today().slice(0,7);
+  const monthStart = `${month}-01`;
+  const monthEnd = effectiveMonthEnd(month);
+
+  const [{data:suppliers},{data:cash},{data:employees},{data:movements},{data:paymentMethods},{data:departments},{data:attendanceRecords},{data:monthlyAttendance}] = await Promise.all([
+    sb.from('suppliers').select('*').eq('business_id', bid).order('name'),
+    sb.from('cash_transactions').select('*').eq('business_id', bid).order('created_at', {ascending:false}).limit(500),
+    sb.from('employees').select('*').eq('business_id', bid).eq('is_active', true).order('full_name'),
+    sb.from('supplier_movements').select('*').eq('business_id', bid).order('movement_date', {ascending:true}),
+    sb.from('payment_methods').select('*').eq('business_id', bid).order('sort_order').order('name'),
+    sb.from('transaction_types').select('*').eq('business_id', bid).order('sort_order').order('name'),
+    sb.from('attendance_records').select('*').eq('business_id', bid).eq('attendance_date', attendanceDate),
+    sb.from('attendance_records').select('*').eq('business_id', bid).gte('attendance_date', monthStart).lte('attendance_date', monthEnd),
+  ]);
+
+  state.suppliers = suppliers || [];
+  state.cash = cash || [];
+  state.employees = employees || [];
+  state.supplierMovements = movements || [];
+  state.paymentMethods = paymentMethods || [];
+  state.departments = departments || [];
+  state.attendanceRecords = attendanceRecords || [];
+  state.monthlyAttendance = monthlyAttendance || [];
+  state.supplierBalances = computeSupplierBalances();
+
+  if(hasPermission('can_employee_private')){
+    const { data: privateRows } = await sb.from('employee_private')
+      .select('*')
+      .eq('business_id', bid);
+    state.employeePrivate = privateRows || [];
+  } else {
+    state.employeePrivate = [];
+  }
+
+  if(hasPermission('can_users')){
+    await loadUsersForAdmin();
+  }
+
+
+  if(hasPermission('can_stock')){
+    const [{data: stockItems, error: stockItemsError},{data: stockMovements, error: stockMovementsError}] = await Promise.all([
+      sb.from('stock_items').select('*').eq('business_id', bid).order('name'),
+      sb.from('stock_movements').select('*').eq('business_id', bid).order('movement_date', {ascending:false}).limit(1000)
+    ]);
+    if(!stockItemsError) state.stockItems = stockItems || [];
+    if(!stockMovementsError) state.stockMovements = stockMovements || [];
+  } else {
+    state.stockItems = [];
+    state.stockMovements = [];
+  }
+
+  renderSuppliers();
+  renderEmployees();
+  renderCashLinkSelects();
+  renderSettings();
+  renderUsers();
+  renderStock();
+  renderStockCritical();
+  renderCash();
+  renderSummary();
+}
+
+async function ensureDefaultPaymentMethods(businessId){
+  const { data, error } = await sb.from('payment_methods')
+    .select('id')
+    .eq('business_id', businessId)
+    .limit(1);
+
+  if(error) {
+    console.warn('Ödeme yöntemi kontrol hatası:', error.message);
+    return;
+  }
+
+  if(data && data.length > 0) return;
+
+  const defaults = ['Nakit', 'Ziraat Bankası', 'Vakıfbank', 'Denizbank', 'Kredi Kartı'];
+  const rows = defaults.map((name, index) => ({
+    business_id: businessId,
+    name,
+    sort_order: index + 1,
+    is_active: true
+  }));
+
+  const { error: insertError } = await sb.from('payment_methods').insert(rows);
+  if(insertError) console.warn('Varsayılan ödeme yöntemleri eklenemedi:', insertError.message);
+}
+
+
+async function ensureDefaultDepartments(businessId){
+  const { data, error } = await sb.from('transaction_types')
+    .select('id')
+    .eq('business_id', businessId)
+    .limit(1);
+
+  if(error) {
+    console.warn('Departman kontrol hatası:', error.message);
+    return;
+  }
+
+  if(data && data.length > 0) return;
+
+  const defaults = ['Tedarikçi', 'Kasa', 'Mutfak', 'Bar', 'Personel', 'Diğer'];
+  const rows = defaults.map((name, index) => ({
+    business_id: businessId,
+    name,
+    sort_order: index + 1,
+    is_active: true
+  }));
+
+  const { error: insertError } = await sb.from('transaction_types').insert(rows);
+  if(insertError) console.warn('Varsayılan departmanlar eklenemedi:', insertError.message);
+}
+
+
+
+
+function toggleDataManagement(){
+  const wrap = byId('dataManagementWrap');
+  const btn = byId('dataManagementToggleBtn');
+  if(!wrap || !btn) return;
+  const willOpen = wrap.classList.contains('hidden');
+  wrap.classList.toggle('hidden');
+  btn.textContent = willOpen ? 'Kapat' : 'Aç';
+}
+
+async function confirmDangerAction(title, keyword){
+  if(!isAdmin()) { alert('Bu işlem sadece admin için açık.'); return false; }
+  const typed = prompt(`${title}\n\nBu işlem geri alınamaz. Onaylamak için ${keyword} yaz.`);
+  return (typed || '').trim().toUpperCase() === keyword;
+}
+
+async function wipeCashTransactions(){
+  const ok = await confirmDangerAction('Kasa hareketleri silinecek.', 'KASA');
+  if(!ok) return;
+  const { error } = await sb.from('cash_transactions').delete().eq('business_id', state.activeBusinessId);
+  if(error) return alert(error.message);
+  alert('Kasa hareketleri silindi.');
+  await loadCore();
+}
+
+async function wipeSupplierMovements(){
+  const ok = await confirmDangerAction('Tedarikçi hareketleri silinecek.', 'HAREKET');
+  if(!ok) return;
+  const { error } = await sb.from('supplier_movements').delete().eq('business_id', state.activeBusinessId);
+  if(error) return alert(error.message);
+  alert('Tedarikçi hareketleri silindi.');
+  await loadCore();
+}
+
+async function wipeSuppliers(){
+  const ok = await confirmDangerAction('Tedarikçi kartları silinecek.', 'TEDARIKCI');
+  if(!ok) return;
+  const { error } = await sb.from('suppliers').delete().eq('business_id', state.activeBusinessId);
+  if(error) return alert('Tedarikçiler silinemedi. Önce bağlı hareketleri/kasa kayıtlarını temizlemelisin.\n\n' + error.message);
+  alert('Tedarikçi kartları silindi.');
+  await loadCore();
+}
+
+async function wipeAttendanceRecords(){
+  const ok = await confirmDangerAction('Tüm puantaj kayıtları silinecek.', 'PUANTAJ');
+  if(!ok) return;
+  const { error } = await sb.from('attendance_records').delete().eq('business_id', state.activeBusinessId);
+  if(error) return alert(error.message);
+  alert('Puantaj kayıtları silindi.');
+  await loadCore();
+}
+
+async function wipeEmployees(){
+  const ok = await confirmDangerAction('Personel kartları silinecek.', 'PERSONEL');
+  if(!ok) return;
+  const { error } = await sb.from('employees').delete().eq('business_id', state.activeBusinessId);
+  if(error) return alert('Personeller silinemedi. Önce bağlı ödeme/kasa kayıtları varsa onları temizlemelisin.\n\n' + error.message);
+  alert('Personel kartları silindi.');
+  await loadCore();
+}
+
+async function wipeStockMovements(){
+  const ok = await confirmDangerAction('Stok hareketleri silinecek.', 'STOK');
+  if(!ok) return;
+  const { error } = await sb.from('stock_movements').delete().eq('business_id', state.activeBusinessId);
+  if(error) return alert(error.message);
+  alert('Stok hareketleri silindi.');
+  await loadCore();
+}
+
+async function wipeStockItems(){
+  const ok = await confirmDangerAction('Stok kartları silinecek.', 'KART');
+  if(!ok) return;
+  const { error } = await sb.from('stock_items').delete().eq('business_id', state.activeBusinessId);
+  if(error) return alert('Stok kartları silinemedi. Önce stok hareketlerini temizlemen gerekebilir.\n\n' + error.message);
+  alert('Stok kartları silindi.');
+  await loadCore();
+}
+
+
+function renderSettings(){
+  const dataCard = byId('dataManagementCard');
+  if(dataCard) dataCard.style.display = isAdmin() ? '' : 'none';
+
+  const tbody = byId('paymentMethodTable');
+  if(!tbody) return;
+  tbody.innerHTML = '';
+
+  state.paymentMethods.forEach(pm => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${pm.name}</td><td>${pm.is_active ? 'Aktif' : 'Pasif'}</td>
+      <td>
+        <button onclick="togglePaymentMethod('${pm.id}', ${pm.is_active ? 'false' : 'true'})">${pm.is_active ? 'Pasif Yap' : 'Aktif Yap'}</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+
+  const select = byId('cashPaymentMethod');
+  if(select){
+    select.innerHTML = '<option value="">Ödeme yöntemi seç</option>';
+    state.paymentMethods.filter(x => x.is_active).forEach(pm => {
+      const opt = document.createElement('option');
+      opt.value = pm.id;
+      opt.textContent = pm.name;
+      select.appendChild(opt);
+    });
+  }
+
+  const deptTable = byId('departmentTable');
+  if(deptTable){
+    deptTable.innerHTML = '';
+    state.departments.forEach(dep => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${dep.name}</td><td>${dep.is_active ? 'Aktif' : 'Pasif'}</td>
+        <td><button onclick="toggleDepartment('${dep.id}', ${dep.is_active ? 'false' : 'true'})">${dep.is_active ? 'Pasif Yap' : 'Aktif Yap'}</button></td>`;
+      deptTable.appendChild(tr);
+    });
+  }
+
+  const deptSelect = byId('cashDepartment');
+  if(deptSelect){
+    deptSelect.innerHTML = '<option value="">Departman seç</option>';
+    state.departments.filter(x => x.is_active).forEach(dep => {
+      const opt = document.createElement('option');
+      opt.value = dep.id;
+      opt.textContent = dep.name;
+      deptSelect.appendChild(opt);
+    });
+  }
+
+  onCashDepartmentChange();
+}
+
+
+
+
+
+
+function csvEscape(value){
+  if(value === null || value === undefined) return '';
+  const s = String(value).replace(/\r?\n/g, ' ');
+  if(/[",;\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+
+function toCSV(rows, headers){
+  const sep = ';';
+  return '\ufeff' + [headers.join(sep), ...rows.map(row => headers.map(h => csvEscape(row[h])).join(sep))].join('\n');
+}
+
+function parseSimpleCSV(text){
+  const clean = text.replace(/^\ufeff/, '');
+  const lines = clean.split(/\r?\n/).filter(line => line.trim() !== '');
+  if(!lines.length) return [];
+  const sep = lines[0].includes(';') ? ';' : ',';
+  const headers = lines[0].split(sep).map(x => x.trim().replace(/^"|"$/g,''));
+  return lines.slice(1).map(line => {
+    const parts = line.split(sep).map(x => x.trim().replace(/^"|"$/g,'').replace(/""/g,'"'));
+    const obj = {};
+    headers.forEach((h,i) => obj[h] = parts[i] || '');
+    return obj;
+  });
+}
+
+function downloadFile(filename, content, mime='text/csv;charset=utf-8'){
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+
+function downloadStockInitTemplate(){
+  const headers = ['urun_adi','kategori','birim','sise_cl','min_stok','acilis_stogu','note'];
+  const rows = [
+    { urun_adi:'Yeni Rakı 70cl', kategori:'Rakı', birim:'şişe', sise_cl:'70', min_stok:'3', acilis_stogu:'12', note:'bar açılış' },
+    { urun_adi:'Coca Cola 1L', kategori:'Meşrubat', birim:'adet', sise_cl:'', min_stok:'6', acilis_stogu:'8', note:'' },
+  ];
+  downloadFile(`ilk_stok_yukleme_sablonu_${today()}.csv`, toCSV(rows, headers));
+}
+
+function triggerStockInitImport(){
+  const input = byId('stockInitImportInput');
+  if(!input) return alert('Stok yükleme alanı bulunamadı.');
+  input.value = '';
+  input.onchange = handleStockInitImport;
+  input.click();
+}
+
+async function handleStockInitImport(e){
+  try{
+    const file = e.target.files?.[0];
+    if(!file) return;
+
+    const rows = parseSimpleCSV(await file.text());
+    if(!rows.length) throw new Error('CSV içinde veri yok.');
+
+    const initDate = byId('stockInitDate')?.value || today();
+    const defaultNote = (byId('stockInitNote')?.value || '').trim();
+
+    const itemPayload = [];
+    const rawRows = [];
+
+    rows.forEach(r => {
+      const name = (r.urun_adi || '').trim();
+      if(!name) return;
+
+      itemPayload.push({
+        business_id: state.activeBusinessId,
+        name,
+        category: (r.kategori || '').trim() || null,
+        unit: (r.birim || '').trim() || 'adet',
+        bottle_size_cl: (r.sise_cl || '').trim() === '' ? null : Number(String(r.sise_cl).replace(',', '.')),
+        min_stock: (r.min_stok || '').trim() === '' ? 0 : Number(String(r.min_stok).replace(',', '.')),
+        is_active: true,
+        created_by: state.session.user.id
+      });
+
+      rawRows.push({
+        name,
+        opening: (r.acilis_stogu || '').trim(),
+        note: (r.note || '').trim() || defaultNote || 'İlk stok yükleme'
+      });
+    });
+
+    if(!itemPayload.length) throw new Error('İşlenecek ürün satırı bulunamadı.');
+
+    const { error: itemError } = await sb.from('stock_items').upsert(itemPayload, { onConflict:'business_id,name' });
+    if(itemError) throw itemError;
+
+    const { data: refreshedItems, error: itemFetchError } = await sb.from('stock_items')
+      .select('*')
+      .eq('business_id', state.activeBusinessId);
+
+    if(itemFetchError) throw itemFetchError;
+
+    state.stockItems = refreshedItems || [];
+
+    const movementPayload = [];
+    const invalidOpening = [];
+    rawRows.forEach(r => {
+      if(r.opening === '') return;
+      const item = state.stockItems.find(i => (i.name || '').toLocaleLowerCase('tr-TR') === r.name.toLocaleLowerCase('tr-TR'));
+      if(!item) return;
+      const opening = Number(String(r.opening).replace(',', '.'));
+      if(Number.isNaN(opening)){
+        invalidOpening.push(r.name);
+        return;
+      }
+      movementPayload.push({
+        business_id: state.activeBusinessId,
+        item_id: item.id,
+        movement_date: initDate,
+        type: 'sayim',
+        quantity: opening,
+        note: r.note,
+        created_by: state.session.user.id
+      });
+    });
+
+    if(movementPayload.length){
+      const ok = confirm(
+        `${itemPayload.length} stok kartı işlenecek.\n` +
+        `${movementPayload.length} ürün için açılış sayımı eklenecek.\n` +
+        `${invalidOpening.length ? `Geçersiz açılış stoğu olan ürün sayısı: ${invalidOpening.length}\n` : ''}\n` +
+        `Devam etmek istiyor musun?`
+      );
+      if(!ok) return;
+
+      const { error: moveError } = await sb.from('stock_movements').insert(movementPayload);
+      if(moveError) throw moveError;
+    }
+
+    if(!movementPayload.length){
+      alert(`Toplu stok kartı yükleme tamamlandı. Ürün kartı: ${itemPayload.length}`);
+    } else {
+      alert(`Toplu stok yükleme tamamlandı. Ürün kartı: ${itemPayload.length}, açılış sayımı: ${movementPayload.length}`);
+    }
+
+    if(byId('stockInitNote')) byId('stockInitNote').value = '';
+    await loadCore();
+  } catch(err){
+    alert('İlk stok yükleme hatası: ' + (err?.message || err));
+  }
+}
+
+
+
+function toggleStockBulkCount(){
+  const wrap = byId('stockBulkCountWrap');
+  const btn = byId('stockBulkCountToggleBtn');
+  if(!wrap || !btn) return;
+  const willOpen = wrap.classList.contains('hidden');
+  wrap.classList.toggle('hidden');
+  btn.textContent = willOpen ? 'Kapat' : 'Aç';
+}
+
+function downloadStockCountTemplate(){
+  const headers = ['urun_adi','mevcut_stok','sayilan_miktar','note'];
+  const rows = state.stockItems
+    .filter(i => i.is_active)
+    .map(i => ({
+      urun_adi: i.name,
+      mevcut_stok: stockQuantity(i.id),
+      sayilan_miktar: '',
+      note: ''
+    }));
+  downloadFile(`stok_sayim_sablonu_${today()}.csv`, toCSV(rows, headers));
+}
+
+function triggerStockCountImport(){
+  const input = byId('stockCountImportInput');
+  if(!input) return alert('Sayım yükleme alanı bulunamadı.');
+  input.value = '';
+  input.onchange = handleStockCountImport;
+  input.click();
+}
+
+async function handleStockCountImport(e){
+  try{
+    const file = e.target.files?.[0];
+    if(!file) return;
+
+    const rows = parseSimpleCSV(await file.text());
+    if(!rows.length) throw new Error('CSV içinde veri yok.');
+
+    const movementDate = byId('stockBulkCountDate')?.value || today();
+    const defaultNote = (byId('stockBulkCountNote')?.value || '').trim();
+
+    const validRows = [];
+    const missingItems = [];
+    const diffRows = [];
+
+    rows.forEach(r => {
+      const name = (r.urun_adi || '').trim();
+      const countedRaw = (r.sayilan_miktar || '').trim();
+      if(!name || countedRaw === '') return;
+
+      const item = state.stockItems.find(i => (i.name || '').toLocaleLowerCase('tr-TR') === name.toLocaleLowerCase('tr-TR'));
+      if(!item){
+        missingItems.push(name);
+        return;
+      }
+
+      const counted = Number(String(countedRaw).replace(',', '.'));
+      if(Number.isNaN(counted)) return;
+
+      const current = stockQuantity(item.id);
+      const diff = counted - current;
+      if(diff !== 0){
+        diffRows.push(`${item.name}: ${current} → ${counted} (${diff > 0 ? '+' : ''}${diff})`);
+      }
+
+      validRows.push({
+        business_id: state.activeBusinessId,
+        item_id: item.id,
+        movement_date: movementDate,
+        type: 'sayim',
+        quantity: counted,
+        note: (r.note || '').trim() || defaultNote || 'Toplu sayım',
+        created_by: state.session.user.id
+      });
+    });
+
+    if(!validRows.length){
+      throw new Error('İşlenecek geçerli sayım satırı bulunamadı.');
+    }
+
+    let msg = `${validRows.length} satır sayım olarak işlenecek.`;
+    if(diffRows.length){
+      const preview = diffRows.slice(0,8).join('\n');
+      msg += `\n\nFark çıkan ürün sayısı: ${diffRows.length}\n${preview}`;
+      if(diffRows.length > 8) msg += `\n...`;
+    }
+    if(missingItems.length){
+      const miss = missingItems.slice(0,8).join('\n');
+      msg += `\n\nBulunamayan ürünler (${missingItems.length}):\n${miss}`;
+      if(missingItems.length > 8) msg += `\n...`;
+    }
+
+    const ok = confirm(msg + '\n\nToplu sayımı kaydetmek istiyor musun?');
+    if(!ok) return;
+
+    const { error } = await sb.from('stock_movements').insert(validRows);
+    if(error) throw error;
+
+    alert(`Toplu sayım kaydedildi. İşlenen satır: ${validRows.length}`);
+    if(byId('stockBulkCountNote')) byId('stockBulkCountNote').value = '';
+    await loadCore();
+  } catch(err){
+    alert('Toplu sayım yüklenemedi: ' + (err?.message || err));
+  }
+}
+
+
+function stockQuantity(itemId){
+  let running = 0;
+  state.stockMovements
+    .filter(m => m.item_id === itemId)
+    .sort((a,b) => String(a.movement_date).localeCompare(String(b.movement_date)) || String(a.created_at).localeCompare(String(b.created_at)))
+    .forEach(m => {
+      const q = Number(m.quantity || 0);
+      if(m.type === 'sayim') running = q;
+      else if(m.type === 'giris') running += q;
+      else if(['cikis','fire','ikram'].includes(m.type)) running -= q;
+    });
+  return running;
+}
+
+function stockTotals(itemId){
+  const rows = state.stockMovements.filter(m => m.item_id === itemId);
+  return {
+    giris: rows.filter(m => m.type === 'giris').reduce((a,m)=>a+Number(m.quantity||0),0),
+    cikis: rows.filter(m => ['cikis','fire','ikram'].includes(m.type)).reduce((a,m)=>a+Number(m.quantity||0),0),
+    sayim: rows.filter(m => m.type === 'sayim').sort((a,b)=>String(b.movement_date).localeCompare(String(a.movement_date)))[0]?.quantity ?? ''
+  };
+}
+
+
+function handleSummaryCardKey(event, mode){
+  if(event.key !== 'Enter' && event.key !== ' ') return;
+  event.preventDefault();
+  openStockSummaryView(mode);
+}
+
+function openStockSummaryView(mode){
+  stockSummaryFilterMode = mode === 'normal' ? 'normal' : '';
+  if(mode === 'critical'){
+    if(byId('stockFilterText')) byId('stockFilterText').value = '';
+    if(byId('stockFilterStatus')) byId('stockFilterStatus').value = '';
+    setStockListVisibility(false);
+    setStockCriticalVisibility(true);
+    renderStockCritical();
+    byId('stockCriticalSection')?.scrollIntoView({ behavior:'smooth', block:'start' });
+    return;
+  }
+
+  if(byId('stockFilterText')) byId('stockFilterText').value = '';
+  if(byId('stockFilterStatus')) byId('stockFilterStatus').value = mode === 'normal' ? 'normal' : '';
+  setStockCriticalVisibility(false);
+  setStockListVisibility(true);
+  renderStock(mode === 'normal' ? 'normal' : '');
+  byId('stockListSection')?.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function toggleStockCreateCard(){
+  const wrap = byId('stockCreateCardWrap');
+  const btn = byId('stockCreateCardToggleBtn');
+  if(!wrap || !btn) return;
+  const willOpen = wrap.classList.contains('hidden');
+  wrap.classList.toggle('hidden', !willOpen);
+  btn.textContent = willOpen ? 'Kapat' : 'Aç';
+}
+
+function toggleStockMoveForm(){
+  const wrap = byId('stockMoveWrap');
+  const btn = byId('stockMoveToggleBtn');
+  if(!wrap || !btn) return;
+  const willOpen = wrap.classList.contains('hidden');
+  wrap.classList.toggle('hidden', !willOpen);
+  btn.textContent = willOpen ? 'Kapat' : 'Aç';
+}
+
+function setStockCriticalVisibility(forceOpen){
+  const section = byId('stockCriticalSection');
+  const btn = byId('stockCriticalToggleBtn');
+  if(!section || !btn) return;
+  section.classList.toggle('hidden', !forceOpen);
+  btn.textContent = forceOpen ? 'Raporu Kapat' : 'Raporu Aç';
+}
+
+function setStockListVisibility(forceOpen){
+  const section = byId('stockListSection');
+  const btn = byId('stockListToggleBtn');
+  if(!section || !btn) return;
+  section.classList.toggle('hidden', !forceOpen);
+  btn.textContent = forceOpen ? 'Listeyi Kapat' : 'Listeyi Aç';
+}
+
+function toggleStockCriticalReport(){
+  const section = byId('stockCriticalSection');
+  if(!section) return;
+  const willOpen = section.classList.contains('hidden');
+  if(willOpen) setStockListVisibility(false);
+  setStockCriticalVisibility(willOpen);
+  if(willOpen){
+    renderStockCritical();
+    section.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+}
+
+function toggleStockList(){
+  const section = byId('stockListSection');
+  if(!section) return;
+  const willOpen = section.classList.contains('hidden');
+  if(willOpen) setStockCriticalVisibility(false);
+  setStockListVisibility(willOpen);
+  if(willOpen){
+    renderStock(stockSummaryFilterMode || '');
+    section.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+}
+
+
+function toggleStockSupplierReport(){
+  const wrap = byId('stockSupplierReportWrap');
+  const btn = byId('stockSupplierReportToggleBtn');
+  if(!wrap || !btn) return;
+  const willOpen = wrap.classList.contains('hidden');
+  wrap.classList.toggle('hidden');
+  btn.textContent = willOpen ? 'Raporu Kapat' : 'Raporu Aç';
+  if(willOpen) renderStockSupplierReport();
+}
+
+function resetStockSupplierReportFilters(){
+  ['stockSupplierDateFrom','stockSupplierDateTo'].forEach(id => { if(byId(id)) byId(id).value = ''; });
+  if(byId('stockSupplierFilter')) byId('stockSupplierFilter').value = '';
+  renderStockSupplierReport();
+}
+
+function renderStockSupplierReport(){
+  const tbody = byId('stockSupplierReportTable');
+  const filterSelect = byId('stockSupplierFilter');
+  if(!tbody || !filterSelect) return;
+
+  const currentFilter = filterSelect.value || '';
+  filterSelect.innerHTML = '<option value="">Tüm Tedarikçiler</option>';
+  state.suppliers.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = s.name;
+    filterSelect.appendChild(opt);
+  });
+  filterSelect.value = currentFilter;
+
+  const dateFrom = byId('stockSupplierDateFrom')?.value || '';
+  const dateTo = byId('stockSupplierDateTo')?.value || '';
+  const supplierId = filterSelect.value || '';
+
+  const sourceRows = state.stockMovements
+    .filter(m => m.type === 'giris' && m.supplier_id)
+    .filter(m => !dateFrom || m.movement_date >= dateFrom)
+    .filter(m => !dateTo || m.movement_date <= dateTo)
+    .filter(m => !supplierId || m.supplier_id === supplierId);
+
+  const groupedMap = new Map();
+  sourceRows.forEach(m => {
+    const supplier = state.suppliers.find(s => s.id === m.supplier_id);
+    const item = state.stockItems.find(i => i.id === m.item_id);
+    const key = `${m.supplier_id}__${m.item_id}`;
+
+    if(!groupedMap.has(key)){
+      groupedMap.set(key, {
+        supplier_name: supplier?.name || '-',
+        item_name: item?.name || '-',
+        total_qty: 0,
+        total_amount: 0,
+        movement_count: 0
+      });
+    }
+
+    const rec = groupedMap.get(key);
+    rec.total_qty += Number(m.quantity || 0);
+    rec.total_amount += Number(m.amount || 0);
+    rec.movement_count += 1;
+  });
+
+  const rows = Array.from(groupedMap.values()).sort((a,b) => {
+    if(a.supplier_name !== b.supplier_name) return a.supplier_name.localeCompare(b.supplier_name, 'tr');
+    return a.item_name.localeCompare(b.item_name, 'tr');
+  });
+
+  if(byId('stockSupplierReportBadge')) byId('stockSupplierReportBadge').textContent = `${rows.length} satır`;
+
+  tbody.innerHTML = '';
+  if(!rows.length){
+    tbody.innerHTML = '<tr><td colspan="5" class="muted">Filtreye uygun stok giriş kaydı yok.</td></tr>';
+    return;
+  }
+
+  rows.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><b>${r.supplier_name}</b></td>
+      <td>${r.item_name}</td>
+      <td>${r.total_qty}</td>
+      <td>${r.total_amount ? money(r.total_amount) : '-'}</td>
+      <td>${r.movement_count}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+
+function renderStockCritical(){
+  const tbody = byId('stockCriticalTable');
+  if(!tbody) return;
+
+  const criticalRows = state.stockItems
+    .map(item => {
+      const current = stockQuantity(item.id);
+      const min = Number(item.min_stock || 0);
+      return { item, current, min, deficit: Math.max(0, min - current) };
+    })
+    .filter(x => x.current <= x.min)
+    .sort((a,b) => b.deficit - a.deficit || a.item.name.localeCompare(b.item.name, 'tr'));
+
+  if(byId('stockCriticalBadge')) byId('stockCriticalBadge').textContent = `${criticalRows.length} ürün`;
+
+  tbody.innerHTML = '';
+  const ml = byId('stockCriticalMobileList');
+  if(ml) ml.innerHTML = '';
+
+  if(!criticalRows.length){
+    tbody.innerHTML = '<tr><td colspan="6" class="muted">Kritik stokta ürün yok.</td></tr>';
+    if(ml) ml.innerHTML = '<div class="muted" style="padding:10px">Kritik stokta ürün yok.</div>';
+    return;
+  }
+
+  criticalRows.forEach(({item, current, min, deficit}) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><b>${item.name}</b></td>
+      <td>${item.category || ''}</td>
+      <td style="color:var(--danger);font-weight:700">${current}</td>
+      <td>${min}</td>
+      <td><b>${deficit}</b></td>
+      <td><button class="mini" onclick="openStockDetail('${item.id}')">Detay / İşlem</button></td>
+    `;
+    tbody.appendChild(tr);
+
+    if(ml){
+      const div = document.createElement('div');
+      div.className = 'mobile-item';
+      div.style.borderColor = 'var(--danger)';
+      div.innerHTML = `
+        <div class="mobile-item-title">${item.name}
+          <span style="float:right;color:var(--danger);font-size:20px;font-weight:700">${current}</span>
+        </div>
+        <div class="mobile-kv"><span class="k">Kategori</span><span>${item.category||'-'}</span></div>
+        <div class="mobile-kv"><span class="k">Min. Stok</span><span>${min}</span></div>
+        <div class="mobile-kv"><span class="k">Eksik</span><span style="color:var(--danger);font-weight:700">${deficit}</span></div>
+        <div class="mobile-actions">
+          <button onclick="openStockDetail('${item.id}')" style="flex:1">Detay / İşlem</button>
+        </div>
+      `;
+      ml.appendChild(div);
+    }
+  });
+}
+
+
+function renderStock(forcedStatus=''){
+  const tbody = byId('stockTable');
+  if(!tbody) return;
+
+  const itemSelect = byId('stockMoveItem');
+  if(itemSelect){
+    const current = itemSelect.value || '';
+    itemSelect.innerHTML = '<option value="">Ürün seç</option>';
+    state.stockItems.filter(i => i.is_active).forEach(i => {
+      const opt = document.createElement('option');
+      opt.value = i.id;
+      opt.textContent = i.name;
+      itemSelect.appendChild(opt);
+    });
+    itemSelect.value = current;
+  }
+
+  const supplierSelect = byId('stockMoveSupplier');
+  if(supplierSelect){
+    const current = supplierSelect.value || '';
+    supplierSelect.innerHTML = '<option value="">Tedarikçi seç opsiyonel</option>';
+    state.suppliers.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      opt.textContent = s.name;
+      supplierSelect.appendChild(opt);
+    });
+    supplierSelect.value = current;
+  }
+
+  if(byId('stockMoveDate') && !byId('stockMoveDate').value) byId('stockMoveDate').value = today();
+  if(byId('stockBulkCountDate') && !byId('stockBulkCountDate').value) byId('stockBulkCountDate').value = today();
+  if(byId('stockInitDate') && !byId('stockInitDate').value) byId('stockInitDate').value = today();
+  if(byId('stockSupplierDateFrom') && byId('stockSupplierDateFrom').value === '') byId('stockSupplierDateFrom').value = '';
+  if(byId('stockSupplierDateTo') && byId('stockSupplierDateTo').value === '') byId('stockSupplierDateTo').value = '';
+  renderStockSupplierReport();
+
+  const q = (byId('stockFilterText')?.value || '').trim().toLocaleLowerCase('tr-TR');
+  const statusFilter = forcedStatus || stockSummaryFilterMode || byId('stockFilterStatus')?.value || '';
+  if(byId('stockFilterStatus') && statusFilter !== byId('stockFilterStatus').value) byId('stockFilterStatus').value = statusFilter;
+
+  const criticalAll = state.stockItems.filter(item => stockQuantity(item.id) <= Number(item.min_stock || 0)).length;
+  if(byId('stockItemCount')) byId('stockItemCount').textContent = state.stockItems.length;
+  if(byId('stockCriticalCount')) byId('stockCriticalCount').textContent = criticalAll;
+  if(byId('stockNormalCount')) byId('stockNormalCount').textContent = state.stockItems.length - criticalAll;
+
+  const rows = state.stockItems.filter(item => {
+    const qty = stockQuantity(item.id);
+    const critical = qty <= Number(item.min_stock || 0);
+    const blob = `${item.name || ''} ${item.category || ''}`.toLocaleLowerCase('tr-TR');
+    if(q && !blob.includes(q)) return false;
+    if(statusFilter === 'critical' && !critical) return false;
+    if(statusFilter === 'normal' && critical) return false;
+    return true;
+  });
+
+  tbody.innerHTML = '';
+  if(!rows.length){
+    tbody.innerHTML = '<tr><td colspan="9" class="muted">Stok kaydı yok veya filtreye uygun ürün bulunamadı.</td></tr>';
+    return;
+  }
+
+  rows.forEach(item => {
+    const qty = stockQuantity(item.id);
+    const totals = stockTotals(item.id);
+    const critical = qty <= Number(item.min_stock || 0);
+    const qtyColor = critical ? 'color:var(--danger)' : 'color:var(--ok)';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><b>${item.name}</b></td>
+      <td>${item.category || ''}</td>
+      <td>${item.unit || ''}${item.bottle_size_cl ? ` / ${item.bottle_size_cl}cl` : ''}</td>
+      <td>${item.min_stock || 0}</td>
+      <td>${totals.giris}</td>
+      <td>${totals.cikis}</td>
+      <td>${totals.sayim}</td>
+      <td><b style="${qtyColor}">${qty}</b></td>
+      <td><button class="mini" onclick="openStockDetail('${item.id}')">Detay / İşlem</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // MOBİL KOMPAKT LİSTE
+  const mobileList = byId('stockMobileList');
+  if(mobileList){
+    mobileList.innerHTML = '';
+    if(!rows.length){
+      mobileList.innerHTML = '<div class="muted" style="padding:12px">Stok kaydı yok.</div>';
+    } else {
+      rows.forEach(item => {
+        const qty = stockQuantity(item.id);
+        const critical = qty <= Number(item.min_stock || 0);
+        const div = document.createElement('div');
+        div.style.cssText = 'display:flex;align-items:center;padding:11px 14px;border-bottom:1px solid var(--line2);gap:12px;cursor:pointer;background:var(--card)';
+        div.onclick = () => openStockDetail(item.id);
+        div.innerHTML = `
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.name}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:1px">${item.category||''}${item.unit?' · '+item.unit:''}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:18px;font-weight:700;${critical?'color:var(--danger)':'color:var(--ok)'}">${qty}</div>
+            <div style="font-size:10px;color:var(--muted)">min ${item.min_stock||0}</div>
+          </div>
+          <div style="color:var(--muted);font-size:16px;flex-shrink:0">›</div>
+        `;
+        mobileList.appendChild(div);
+      });
+      // İlk ve son border-radius
+      if(mobileList.firstChild) mobileList.firstChild.style.borderRadius = 'var(--r-sm) var(--r-sm) 0 0';
+      if(mobileList.lastChild) mobileList.lastChild.style.cssText += ';border-bottom:none;border-radius:0 0 var(--r-sm) var(--r-sm)';
+    }
+    mobileList.style.cssText = 'border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden;margin-top:8px';
+  }
+}
+
+function resetStockFilters(){
+  stockSummaryFilterMode = '';
+  if(byId('stockFilterText')) byId('stockFilterText').value = '';
+  if(byId('stockFilterStatus')) byId('stockFilterStatus').value = '';
+  renderStock();
+}
+
+async function createStockItem(){
+  const name = byId('stockName').value.trim();
+  if(!name) return alert('Ürün adı gerekli.');
+  const { error } = await sb.from('stock_items').upsert({
+    business_id: state.activeBusinessId,
+    name,
+    category: byId('stockCategory').value.trim() || null,
+    unit: byId('stockUnit').value.trim() || 'adet',
+    bottle_size_cl: byId('stockBottleSize').value ? Number(byId('stockBottleSize').value) : null,
+    min_stock: Number(byId('stockMin').value || 0),
+    is_active: true,
+    created_by: state.session.user.id
+  }, { onConflict:'business_id,name' });
+  if(error) return alert(error.message);
+  ['stockName','stockCategory','stockBottleSize','stockMin'].forEach(id => { if(byId(id)) byId(id).value = ''; });
+  if(byId('stockUnit')) byId('stockUnit').value = 'adet';
+  await loadCore();
+}
+
+async function createStockMovement(){
+  const item_id = byId('stockMoveItem').value;
+  const type = byId('stockMoveType').value;
+  const quantity = Number(byId('stockMoveQty').value || 0);
+
+  if(!item_id) return alert('Ürün seç.');
+  if(byId('stockMoveQty').value === '' || quantity < 0) return alert('Geçerli miktar gir.');
+
+  const item = state.stockItems.find(i => i.id === item_id);
+  const currentStock = stockQuantity(item_id);
+
+  if(type === 'sayim'){
+    const diff = quantity - currentStock;
+    if(diff !== 0){
+      const ok = confirm(
+        `${item?.name || 'Seçili ürün'} için sayım farkı var.\n\n` +
+        `Sistemdeki mevcut stok: ${currentStock}\n` +
+        `Girilen sayım: ${quantity}\n` +
+        `Fark: ${diff > 0 ? '+' : ''}${diff}\n\n` +
+        `Bu sayımı kaydetmek istiyor musun?`
+      );
+      if(!ok) return;
+    }
+  }
+
+  const { error } = await sb.from('stock_movements').insert({
+    business_id: state.activeBusinessId,
+    item_id,
+    type,
+    quantity,
+    movement_date: byId('stockMoveDate').value || today(),
+    supplier_id: byId('stockMoveSupplier').value || null,
+    amount: byId('stockMoveAmount').value ? Number(byId('stockMoveAmount').value) : null,
+    note: byId('stockMoveNote').value.trim() || null,
+    created_by: state.session.user.id
+  });
+
+  if(error) return alert(error.message);
+
+  if(type === 'sayim'){
+    const diff = quantity - currentStock;
+    if(diff !== 0){
+      alert(`Sayım kaydedildi. Fark: ${diff > 0 ? '+' : ''}${diff}`);
+    }
+  }
+
+  ['stockMoveQty','stockMoveAmount','stockMoveNote'].forEach(id => { if(byId(id)) byId(id).value = ''; });
+  await loadCore();
+}
+
+async function editStockItem(id){
+  const item = state.stockItems.find(i => i.id === id);
+  if(!item) return alert('Ürün bulunamadı.');
+  const name = prompt('Ürün adı', item.name || '');
+  if(name === null) return;
+  const category = prompt('Kategori', item.category || '');
+  if(category === null) return;
+  const unit = prompt('Birim', item.unit || 'adet');
+  if(unit === null) return;
+  const minRaw = prompt('Minimum stok', String(item.min_stock || 0));
+  if(minRaw === null) return;
+  const { error } = await sb.from('stock_items')
+    .update({ name: name.trim(), category: category.trim() || null, unit: unit.trim() || 'adet', min_stock: Number(minRaw || 0) })
+    .eq('id', id)
+    .eq('business_id', state.activeBusinessId);
+  if(error) return alert(error.message);
+  await loadCore();
+}
+
+async function deleteStockItem(id){
+  if(!confirm('Bu stok kartını ve hareketlerini silmek istiyor musun?')) return;
+  const { error } = await sb.from('stock_items').delete().eq('id', id).eq('business_id', state.activeBusinessId);
+  if(error) return alert(error.message);
+  await loadCore();
+}
+
+
+
+function stockMovementRowsForItem(itemId){
+  const dateFrom = byId('stockDetailDateFrom')?.value || '';
+  const dateTo = byId('stockDetailDateTo')?.value || '';
+  const type = byId('stockDetailType')?.value || '';
+  const q = (byId('stockDetailText')?.value || '').trim().toLocaleLowerCase('tr-TR');
+
+  return state.stockMovements
+    .filter(m => m.item_id === itemId)
+    .filter(m => {
+      const supplierName = m.supplier_id ? (state.suppliers.find(s => s.id === m.supplier_id)?.name || '') : '';
+      const blob = `${m.note || ''} ${supplierName}`.toLocaleLowerCase('tr-TR');
+      if(dateFrom && m.movement_date < dateFrom) return false;
+      if(dateTo && m.movement_date > dateTo) return false;
+      if(type && m.type !== type) return false;
+      if(q && !blob.includes(q)) return false;
+      return true;
+    })
+    .sort((a,b) => String(b.movement_date).localeCompare(String(a.movement_date)) || String(b.created_at).localeCompare(String(a.created_at)));
+}
+
+function closeStockDetail(){
+  byId('stockDetailModal').classList.add('hidden');
+}
+
+function editStockItemFromDetail(){
+  const id = byId('stockDetailItemId')?.value;
+  if(!id) return;
+  closeStockDetail();
+  editStockItem(id);
+}
+
+async function deleteStockItemFromDetail(){
+  const id = byId('stockDetailItemId')?.value;
+  if(!id) return;
+  closeStockDetail();
+  await deleteStockItem(id);
+}
+
+function resetStockDetailFilters(){
+  ['stockDetailDateFrom','stockDetailDateTo','stockDetailText'].forEach(id => { if(byId(id)) byId(id).value = ''; });
+  if(byId('stockDetailType')) byId('stockDetailType').value = '';
+  renderStockDetailRows();
+}
+
+function openStockDetail(itemId){
+  const item = state.stockItems.find(i => i.id === itemId);
+  if(!item) return alert('Ürün bulunamadı.');
+
+  byId('stockDetailItemId').value = itemId;
+  byId('stockDetailTitle').textContent = `${item.name} - Stok Detayı`;
+
+  const qty = stockQuantity(itemId);
+  const totals = stockTotals(itemId);
+  byId('stockDetailCurrent').textContent = qty;
+  byId('stockDetailMin').textContent = item.min_stock || 0;
+  byId('stockDetailCount').textContent = totals.sayim === '' ? '-' : totals.sayim;
+  byId('stockDetailSummary').textContent = `${item.category || 'Kategori yok'} • ${item.unit || ''}${item.bottle_size_cl ? ` / ${item.bottle_size_cl}cl` : ''}`;
+
+  resetStockDetailFilters();
+  byId('stockDetailModal').classList.remove('hidden');
+}
+
+function renderStockDetailRows(){
+  const itemId = byId('stockDetailItemId')?.value;
+  const tbody = byId('stockDetailTable');
+  if(!itemId || !tbody) return;
+
+  const rows = stockMovementRowsForItem(itemId);
+  tbody.innerHTML = '';
+  if(byId('stockDetailCountBadge')) byId('stockDetailCountBadge').textContent = `${rows.length} kayıt`;
+
+  if(!rows.length){
+    tbody.innerHTML = '<tr><td colspan="7" class="muted">Bu ürüne ait hareket bulunamadı.</td></tr>';
+    return;
+  }
+
+  rows.forEach(m => {
+    const supplierName = m.supplier_id ? (state.suppliers.find(s => s.id === m.supplier_id)?.name || '-') : '-';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${m.movement_date}</td>
+      <td>${m.type}</td>
+      <td><b>${m.quantity}</b></td>
+      <td>${supplierName}</td>
+      <td>${m.amount ? money(m.amount) : '-'}</td>
+      <td>${m.note || ''}</td>
+      <td>
+        <button class="mini" onclick="editStockMovement('${m.id}')">Düzenle</button>
+        <button class="mini btn-danger" onclick="deleteStockMovement('${m.id}')">Sil</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function editStockMovement(id){
+  const m = state.stockMovements.find(x => x.id === id);
+  if(!m) return alert('Hareket bulunamadı.');
+
+  const date = prompt('Tarih (YYYY-AA-GG)', m.movement_date || today());
+  if(date === null) return;
+
+  const type = prompt('Tip (giris, cikis, sayim, fire, ikram)', m.type || 'giris');
+  if(type === null) return;
+  const cleanType = type.trim().toLowerCase();
+  if(!['giris','cikis','sayim','fire','ikram'].includes(cleanType)) return alert('Geçersiz tip.');
+
+  const qtyRaw = prompt('Miktar', String(m.quantity || 0));
+  if(qtyRaw === null) return;
+  const quantity = Number(qtyRaw);
+  if(Number.isNaN(quantity) || quantity < 0) return alert('Geçerli miktar gir.');
+
+  const amountRaw = prompt('Tutar (boş bırakılabilir)', m.amount == null ? '' : String(m.amount));
+  if(amountRaw === null) return;
+
+  const note = prompt('Not', m.note || '');
+  if(note === null) return;
+
+  const { error } = await sb.from('stock_movements')
+    .update({
+      movement_date: date,
+      type: cleanType,
+      quantity,
+      amount: amountRaw === '' ? null : Number(amountRaw),
+      note: note.trim() || null
+    })
+    .eq('id', id)
+    .eq('business_id', state.activeBusinessId);
+
+  if(error) return alert(error.message);
+  await loadCore();
+  openStockDetail(m.item_id);
+}
+
+async function deleteStockMovement(id){
+  const m = state.stockMovements.find(x => x.id === id);
+  if(!m) return alert('Hareket bulunamadı.');
+  if(!confirm('Bu stok hareketini silmek istiyor musun?')) return;
+
+  const { error } = await sb.from('stock_movements')
+    .delete()
+    .eq('id', id)
+    .eq('business_id', state.activeBusinessId);
+
+  if(error) return alert(error.message);
+  await loadCore();
+  openStockDetail(m.item_id);
+}
+
+
+async function loadUsersForAdmin(){
+  if(!hasPermission('can_users')) return;
+
+  const [{data: members},{data: perms}] = await Promise.all([
+    sb.from('business_users')
+      .select('*, profiles(id, full_name, email)')
+      .eq('business_id', state.activeBusinessId)
+      .order('created_at', {ascending:true}),
+    sb.from('user_panel_permissions')
+      .select('*')
+      .eq('business_id', state.activeBusinessId)
+  ]);
+
+  state.users = members || [];
+  state.userPermissions = perms || [];
+}
+
+function permissionForUser(userId){
+  return state.userPermissions.find(p => p.user_id === userId) || {};
+}
+
+function checkedAttr(v){ return v ? 'checked' : ''; }
+
+function renderUsers(){
+  const tbody = byId('usersTable');
+  if(!tbody) return;
+  tbody.innerHTML = '';
+
+  if(!hasPermission('can_users')){
+    tbody.innerHTML = '<tr><td colspan="13" class="muted">Kullanıcı yönetimi için yetkin yok.</td></tr>';
+    return;
+  }
+
+  state.users.forEach(u => {
+    const p = permissionForUser(u.user_id);
+    const tr = document.createElement('tr');
+    tr.dataset.userId = u.user_id;
+    tr.innerHTML = `
+      <td><b>${u.profiles?.full_name || u.user_id}</b><div class="muted">${u.profiles?.email || ''}</div></td>
+      <td>
+        <select data-field="role">
+          <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
+          <option value="yonetici" ${u.role==='yonetici'?'selected':''}>Yönetici</option>
+          <option value="kasa" ${u.role==='kasa'?'selected':''}>Kasa</option>
+          <option value="muhasebe" ${u.role==='muhasebe'?'selected':''}>Muhasebe</option>
+        </select>
+      </td>
+      <td><input type="checkbox" data-field="is_active" ${checkedAttr(u.is_active)} /></td>
+      <td><input type="checkbox" data-field="can_panel" ${checkedAttr(p.can_panel)} /></td>
+      <td><input type="checkbox" data-field="can_cash" ${checkedAttr(p.can_cash)} /></td>
+      <td><input type="checkbox" data-field="can_suppliers" ${checkedAttr(p.can_suppliers)} /></td>
+      <td><input type="checkbox" data-field="can_employees" ${checkedAttr(p.can_employees)} /></td>
+      <td><input type="checkbox" data-field="can_settings" ${checkedAttr(p.can_settings)} /></td>
+      <td><input type="checkbox" data-field="can_users" ${checkedAttr(p.can_users)} /></td>
+      <td><input type="checkbox" data-field="can_cash_edit" ${checkedAttr(p.can_cash_edit)} /></td>
+      <td><input type="checkbox" data-field="can_cash_delete" ${checkedAttr(p.can_cash_delete)} /></td>
+      <td><input type="checkbox" data-field="can_employee_private" ${checkedAttr(p.can_employee_private)} /></td>
+      <td><button class="mini btn-primary" onclick="saveUserPermissions('${u.user_id}')">Kaydet</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  if(!state.users.length){
+    tbody.innerHTML = '<tr><td colspan="13" class="muted">Kullanıcı yok.</td></tr>';
+  }
+}
+
+async function linkUserByEmail(){
+  try {
+    const email = byId('newUserEmail').value.trim();
+    const fullName = byId('newUserName').value.trim();
+    const role = byId('newUserRole').value;
+
+    if(!email) throw new Error('E-posta gerekli.');
+
+    const { error } = await sb.rpc('admin_link_user_by_email', {
+      p_business_id: state.activeBusinessId,
+      p_email: email,
+      p_full_name: fullName,
+      p_role: role
+    });
+
+    if(error) throw error;
+
+    byId('newUserEmail').value = '';
+    byId('newUserName').value = '';
+    await loadCore();
+    alert('Kullanıcı işletmeye bağlandı.');
+  } catch(err){
+    alert('Kullanıcı bağlanamadı: ' + (err?.message || err));
+  }
+}
+
+async function saveUserPermissions(userId){
+  try {
+    const tr = document.querySelector(`tr[data-user-id="${userId}"]`);
+    if(!tr) throw new Error('Kullanıcı satırı bulunamadı.');
+
+    const role = tr.querySelector('[data-field="role"]').value;
+    const is_active = tr.querySelector('[data-field="is_active"]').checked;
+
+    const fields = [
+      'can_panel','can_cash','can_suppliers','can_employees','can_settings','can_users',
+      'can_cash_edit','can_cash_delete','can_employee_private'
+    ];
+
+    const payload = {
+      business_id: state.activeBusinessId,
+      user_id: userId
+    };
+
+    fields.forEach(f => {
+      payload[f] = tr.querySelector(`[data-field="${f}"]`)?.checked || false;
+    });
+
+    const [{error: roleError},{error: permError}] = await Promise.all([
+      sb.from('business_users')
+        .update({ role, is_active })
+        .eq('business_id', state.activeBusinessId)
+        .eq('user_id', userId),
+      sb.from('user_panel_permissions')
+        .upsert(payload, { onConflict: 'business_id,user_id' })
+    ]);
+
+    if(roleError) throw roleError;
+    if(permError) throw permError;
+
+    await loadCore();
+    alert('Kullanıcı yetkileri kaydedildi.');
+  } catch(err){
+    alert('Yetki kaydedilemedi: ' + (err?.message || err));
+  }
+}
+
+
+function computeSupplierBalances(){
+  return state.suppliers.map(s => {
+    const opening = Number(s.opening_balance || 0);
+
+    const alis = state.supplierMovements
+      .filter(m => m.supplier_id === s.id && m.type === 'alis')
+      .reduce((a,m) => a + Number(m.amount || 0), 0);
+
+    const iade = state.supplierMovements
+      .filter(m => m.supplier_id === s.id && m.type === 'iade')
+      .reduce((a,m) => a + Number(m.amount || 0), 0);
+
+    const odeme = state.cash
+      .filter(c => c.supplier_id === s.id && c.type === 'cikan')
+      .reduce((a,c) => a + Number(c.amount || 0), 0);
+
+    return {
+      ...s,
+      opening_balance: opening,
+      total_alis: alis,
+      total_iade: iade,
+      total_odeme: odeme,
+      balance: opening + alis - iade - odeme
+    };
+  }).sort((a,b) => String(a.name).localeCompare(String(b.name), 'tr'));
+}
+
+
+function cashSign(type){
+  // Gelir sayılacaklar
+  if(type === 'narpos' || type === 'giren') return 1;
+
+  // Gider / çıkış sayılacaklar
+  if(type === 'cikan' || type === 'kesinti') return -1;
+
+  // KK işlemi şu aşamada nötr kabul edildi; istersek sonra kart tahsilatı / banka yatışı diye ayırırız.
+  if(type === 'kk') return 0;
+
+  return 0;
+}
+
+function renderSummary(){
+  const selectedDate = byId('panelDate')?.value || today();
+  const dayCash = state.cash.filter(x => x.tx_date === selectedDate);
+
+  const giren = dayCash
+    .filter(x => cashSign(x.type) > 0)
+    .reduce((a,x)=>a+Number(x.amount||0),0);
+
+  const cikan = dayCash
+    .filter(x => cashSign(x.type) < 0)
+    .reduce((a,x)=>a+Number(x.amount||0),0);
+
+  const net = giren - cikan;
+
+  byId('sumCashIn').textContent = money(giren);
+  byId('sumCashOut').textContent = money(cikan);
+  byId('sumCashNet').textContent = money(net);
+  byId('sumCashNet').classList.toggle('ok', net >= 0);
+  byId('sumCashNet').classList.toggle('danger', net < 0);
+  if(byId('sumEmployees')) byId('sumEmployees').textContent = state.employees.length;
+  if(byId('employeeActiveCount')) byId('employeeActiveCount').textContent = state.employees.length;
+
+  const supplierTotal = state.supplierBalances.reduce((a,x)=>a+Number(x.balance||0),0);
+  if(byId('supplierTotalBalance')) byId('supplierTotalBalance').textContent = money(supplierTotal);
+
+  const tbody = byId('paymentSummaryTable');
+  if(tbody){
+    tbody.innerHTML = '';
+
+    const activeMethods = state.paymentMethods.filter(x => x.is_active);
+    activeMethods.forEach(pm => {
+      const rows = dayCash.filter(x => x.payment_method_id === pm.id);
+      const methodIn = rows.filter(x => cashSign(x.type) > 0).reduce((a,x)=>a+Number(x.amount||0),0);
+      const methodOut = rows.filter(x => cashSign(x.type) < 0).reduce((a,x)=>a+Number(x.amount||0),0);
+      const methodNet = methodIn - methodOut;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td><b>${pm.name}</b></td><td class="ok">${money(methodIn)}</td><td class="danger">${money(methodOut)}</td><td><b>${money(methodNet)}</b></td>`;
+      tbody.appendChild(tr);
+    });
+
+    const noMethodRows = dayCash.filter(x => !x.payment_method_id);
+    if(noMethodRows.length){
+      const methodIn = noMethodRows.filter(x => cashSign(x.type) > 0).reduce((a,x)=>a+Number(x.amount||0),0);
+      const methodOut = noMethodRows.filter(x => cashSign(x.type) < 0).reduce((a,x)=>a+Number(x.amount||0),0);
+      const methodNet = methodIn - methodOut;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td><b>Yöntemsiz</b></td><td class="ok">${money(methodIn)}</td><td class="danger">${money(methodOut)}</td><td><b>${money(methodNet)}</b></td>`;
+      tbody.appendChild(tr);
+    }
+
+    if(!tbody.children.length){
+      tbody.innerHTML = '<tr><td colspan="4" class="muted">Bu tarihte kasa hareketi yok.</td></tr>';
+    }
+  }
+
+  const mobileBox = byId('paymentSummaryMobile');
+  if(mobileBox){
+    mobileBox.innerHTML = '';
+    const activeMethods = state.paymentMethods.filter(x => x.is_active);
+    activeMethods.forEach(pm => {
+      const rows = dayCash.filter(x => x.payment_method_id === pm.id);
+      const methodIn = rows.filter(x => cashSign(x.type) > 0).reduce((a,x)=>a+Number(x.amount||0),0);
+      const methodOut = rows.filter(x => cashSign(x.type) < 0).reduce((a,x)=>a+Number(x.amount||0),0);
+      const methodNet = methodIn - methodOut;
+      const div = document.createElement('div');
+      div.className = 'mobile-item';
+      div.innerHTML = `
+        <div class="mobile-item-title">${pm.name}</div>
+        <div class="mobile-kv"><span class="k">Giren</span><span class="ok">${money(methodIn)}</span></div>
+        <div class="mobile-kv"><span class="k">Çıkan</span><span class="danger">${money(methodOut)}</span></div>
+        <div class="mobile-kv"><span class="k">Net</span><span><b>${money(methodNet)}</b></span></div>
+      `;
+      mobileBox.appendChild(div);
+    });
+    if(!mobileBox.children.length){
+      mobileBox.innerHTML = '<div class="mobile-item muted">Bu tarihte kasa hareketi yok.</div>';
+    }
+  }
+}
+
+function renderSuppliers(){
+  const tbody = byId('supplierTable');
+  tbody.innerHTML = '';
+  state.supplierBalances.forEach(s => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${s.name}</td><td>${money(s.opening_balance)}</td><td>${money(s.balance)}</td>
+      <td>
+        <button onclick="showSupplierMovements('${s.id}')">Hareketler</button>
+        <button onclick="addMovementPrompt('${s.id}','alis')">Alış</button>
+        <button onclick="addMovementPrompt('${s.id}','iade')">İade</button>
+        <button onclick="editSupplierPrompt('${s.id}')">Düzenle</button>
+        <button onclick="deleteSupplier('${s.id}')">Sil</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+
+  const mobile = byId('supplierMobileList');
+  if(mobile){
+    mobile.innerHTML = '';
+    state.supplierBalances.forEach(s => {
+      const div = document.createElement('div');
+      div.className = 'mobile-item';
+      div.innerHTML = `
+        <div class="mobile-item-title">${s.name}</div>
+        <div class="mobile-kv"><span class="k">Açılış</span><span>${money(s.opening_balance)}</span></div>
+        <div class="mobile-kv"><span class="k">Bakiye</span><span><b>${money(s.balance)}</b></span></div>
+        <div class="mobile-actions">
+          <button onclick="showSupplierMovements('${s.id}')">Hareketler</button>
+          <button onclick="addMovementPrompt('${s.id}','alis')">Alış</button>
+          <button onclick="addMovementPrompt('${s.id}','iade')">İade</button>
+          <button onclick="editSupplierPrompt('${s.id}')">Düzenle</button>
+          <button onclick="deleteSupplier('${s.id}')">Sil</button>
+        </div>
+      `;
+      mobile.appendChild(div);
+    });
+    if(!state.supplierBalances.length) mobile.innerHTML = '<div class="mobile-item muted">Tedarikçi yok.</div>';
+  }
+
+  renderCashLinkSelects();
+}
+
+function renderCashLinkSelects(){
+  const supplierSelect = byId('cashSupplier');
+  if(supplierSelect){
+    supplierSelect.innerHTML = '<option value="">Tedarikçi seç</option>';
+    state.suppliers.forEach(s=>{
+      const opt = document.createElement('option');
+      opt.value = s.id; opt.textContent = s.name;
+      supplierSelect.appendChild(opt);
+    });
+  }
+
+  const employeeSelect = byId('cashEmployee');
+  if(employeeSelect){
+    employeeSelect.innerHTML = '<option value="">Personel seç</option>';
+    state.employees.forEach(e=>{
+      const opt = document.createElement('option');
+      opt.value = e.id; opt.textContent = e.full_name;
+      employeeSelect.appendChild(opt);
+    });
+  }
+}
+
+function selectedDepartmentName(){
+  const id = byId('cashDepartment')?.value;
+  const dep = state.departments.find(x => x.id === id);
+  return (dep?.name || '').toLocaleLowerCase('tr-TR');
+}
+
+function onCashDepartmentChange(){
+  const name = selectedDepartmentName();
+  const supplier = byId('cashSupplier');
+  const employee = byId('cashEmployee');
+  if(!supplier || !employee) return;
+
+  supplier.classList.add('hidden');
+  employee.classList.add('hidden');
+  supplier.value = '';
+  employee.value = '';
+
+  if(name === 'tedarikçi' || name === 'tedarikci'){
+    supplier.classList.remove('hidden');
+  } else if(name === 'personel'){
+    employee.classList.remove('hidden');
+  }
+}
+
+
+
+function renderCashFilters(){
+  const typeSel = byId('cashFilterType');
+  if(typeSel && !typeSel.dataset.ready){
+    typeSel.innerHTML = `
+      <option value="">Tüm Tipler</option>
+      <option value="cikan">Kasa Çıkan</option>
+      <option value="giren">Kasa Giren</option>
+      <option value="narpos">NarPOS</option>
+      <option value="kk">KK</option>
+      <option value="kesinti">Kesinti</option>
+    `;
+    typeSel.dataset.ready = '1';
+  }
+
+  const paySel = byId('cashFilterPayment');
+  if(paySel){
+    const current = paySel.value || '';
+    paySel.innerHTML = '<option value="">Tüm Ödeme Yöntemleri</option>';
+    state.paymentMethods.forEach(pm => {
+      const opt = document.createElement('option');
+      opt.value = pm.id;
+      opt.textContent = pm.name;
+      paySel.appendChild(opt);
+    });
+    paySel.value = current;
+  }
+
+  const depSel = byId('cashFilterDepartment');
+  if(depSel){
+    const current = depSel.value || '';
+    depSel.innerHTML = '<option value="">Tüm Departmanlar</option>';
+    state.departments.forEach(dep => {
+      const opt = document.createElement('option');
+      opt.value = dep.id;
+      opt.textContent = dep.name;
+      depSel.appendChild(opt);
+    });
+    depSel.value = current;
+  }
+}
+
+function filteredCashRows(){
+  const dateFrom = byId('cashFilterDateFrom')?.value || '';
+  const dateTo = byId('cashFilterDateTo')?.value || '';
+  const type = byId('cashFilterType')?.value || '';
+  const payment = byId('cashFilterPayment')?.value || '';
+  const department = byId('cashFilterDepartment')?.value || '';
+  const q = (byId('cashFilterText')?.value || '').trim().toLocaleLowerCase('tr-TR');
+
+  return state.cash.filter(x => {
+    const supplierName = x.supplier_id ? (state.suppliers.find(s => s.id === x.supplier_id)?.name || '') : '';
+    const employeeName = x.employee_id ? (state.employees.find(e => e.id === x.employee_id)?.full_name || '') : '';
+    const paymentName = x.payment_method_id ? (state.paymentMethods.find(pm => pm.id === x.payment_method_id)?.name || '') : '';
+    const departmentName = x.department_id ? (state.departments.find(dep => dep.id === x.department_id)?.name || '') : '';
+    const searchBlob = `${x.description || ''} ${supplierName} ${employeeName} ${paymentName} ${departmentName}`.toLocaleLowerCase('tr-TR');
+
+    if(dateFrom && x.tx_date < dateFrom) return false;
+    if(dateTo && x.tx_date > dateTo) return false;
+    if(type && x.type !== type) return false;
+    if(payment && x.payment_method_id !== payment) return false;
+    if(department && x.department_id !== department) return false;
+    if(q && !searchBlob.includes(q)) return false;
+    return true;
+  });
+}
+
+function resetCashFilters(){
+  ['cashFilterDateFrom','cashFilterDateTo','cashFilterText'].forEach(id => { if(byId(id)) byId(id).value = ''; });
+  ['cashFilterType','cashFilterPayment','cashFilterDepartment'].forEach(id => { if(byId(id)) byId(id).value = ''; });
+  renderCash();
+}
+
+
+function renderCash(){
+  renderCashFilters();
+
+  const tbody = byId('cashTable');
+  const mobileList = byId('cashMobileList');
+  tbody.innerHTML = '';
+  if(mobileList) mobileList.innerHTML = '';
+
+  const rows = filteredCashRows();
+
+  if(byId('cashListCount')){
+    byId('cashListCount').textContent = `${rows.length} kayıt`;
+  }
+
+  if(!rows.length){
+    tbody.innerHTML = '<tr><td colspan="8" class="muted">Filtreye uygun kasa hareketi yok.</td></tr>';
+    if(mobileList) mobileList.innerHTML = '<div class="muted" style="padding:12px">Filtreye uygun kasa hareketi yok.</div>';
+    return;
+  }
+
+  rows.forEach(x => {
+    const tr = document.createElement('tr');
+
+    const supplierName = x.supplier_id
+      ? (state.suppliers.find(s => s.id === x.supplier_id)?.name || '-')
+      : null;
+
+    const employeeName = x.employee_id
+      ? (state.employees.find(e => e.id === x.employee_id)?.full_name || '-')
+      : null;
+
+    const paymentName = x.payment_method_id
+      ? (state.paymentMethods.find(pm => pm.id === x.payment_method_id)?.name || '-')
+      : '-';
+
+    const departmentName = x.department_id
+      ? (state.departments.find(dep => dep.id === x.department_id)?.name || '-')
+      : '-';
+
+    const linked = supplierName || employeeName || '-';
+    const actions = `${hasPermission('can_cash_edit') ? `<button class="mini" onclick="openCashEdit('${x.id}')">Düzenle</button>` : ''} ${hasPermission('can_cash_delete') ? `<button class="mini" onclick="deleteCash('${x.id}')">Sil</button>` : ''}`.trim() || '-';
+
+    tr.innerHTML = `<td>${x.tx_date}</td><td>${x.type}</td><td>${money(x.amount)}</td><td>${paymentName}</td><td>${departmentName}</td><td>${linked}</td><td>${x.description || ''}</td><td>${actions}</td>`;
+    tbody.appendChild(tr);
+
+    if(mobileList){
+      const div = document.createElement('div');
+      div.className = 'mobile-item';
+      div.innerHTML = `
+        <div class="mobile-item-title">${money(x.amount)}<span style="float:right;font-size:12px;color:var(--muted);font-weight:600">${x.tx_date}</span></div>
+        <div class="mobile-kv"><span class="k">Tip</span><span class="v">${x.type}</span></div>
+        <div class="mobile-kv"><span class="k">Ödeme</span><span class="v">${paymentName}</span></div>
+        <div class="mobile-kv"><span class="k">Departman</span><span class="v">${departmentName}</span></div>
+        <div class="mobile-kv"><span class="k">Bağlantı</span><span class="v">${linked}</span></div>
+        <div class="mobile-kv"><span class="k">Açıklama</span><span class="v">${x.description || '-'}</span></div>
+        ${(hasPermission('can_cash_edit') || hasPermission('can_cash_delete')) ? `<div class="mobile-actions">${hasPermission('can_cash_edit') ? `<button onclick="openCashEdit('${x.id}')">Düzenle</button>` : ''}${hasPermission('can_cash_delete') ? `<button onclick="deleteCash('${x.id}')">Sil</button>` : ''}</div>` : ''}
+      `;
+      mobileList.appendChild(div);
+    }
+  });
+}
+
+function attendanceOptions(selected){
+  const options = [
+    ['calisti', 'Ç - Çalıştı'],
+    ['hafta_tatili', 'Hİ - Haftalık İzin'],
+    ['ucretli_izin', 'Üİ - Ücretli İzin'],
+    ['yillik_izin', 'Yİ - Yıllık İzin'],
+    ['ucretsiz_izin', 'ÜZ - Ücretsiz İzin'],
+    ['cift_yevmiye', 'ÇY - Çift Yevmiye'],
+    ['yarim_gun', 'YG - Yarım Gün'],
+    ['raporlu', 'R - Raporlu']
+  ];
+  return options.map(([value,label]) => `<option value="${value}" ${value===selected?'selected':''}>${label}</option>`).join('');
+}
+
+function attendanceLabel(status){
+  const map = {
+    calisti: 'Çalıştı',
+    hafta_tatili: 'Haftalık İzin',
+    ucretli_izin: 'Ücretli İzin',
+    yillik_izin: 'Yıllık İzin',
+    ucretsiz_izin: 'Ücretsiz İzin',
+    cift_yevmiye: 'Çift Yevmiye',
+    yarim_gun: 'Yarım Gün',
+    raporlu: 'Raporlu',
+    izinli: 'İzinli'
+  };
+  return map[status] || status || '-';
+}
+
+function attendanceWeight(status){
+  const map = {
+    calisti: 1,
+    cift_yevmiye: 2,
+    yarim_gun: 0.5,
+    hafta_tatili: 1,
+    ucretli_izin: 1,
+    yillik_izin: 1,
+    ucretsiz_izin: 0,
+    raporlu: 0,
+    izinli: 0
+  };
+  return map[status] ?? 0;
+}
+
+
+function currentMonthRangeForPayments(){
+  const month = byId('attendanceMonth')?.value || today().slice(0,7);
+  const monthStart = `${month}-01`;
+
+  let monthEnd;
+  if(typeof effectiveMonthEnd === 'function'){
+    monthEnd = effectiveMonthEnd(month);
+  } else {
+    const year = Number(month.slice(0,4));
+    const mon = Number(month.slice(5,7));
+    const last = new Date(year, mon, 0).getDate();
+    monthEnd = `${month}-${String(last).padStart(2,'0')}`;
+  }
+
+  return { month, monthStart, monthEnd };
+}
+
+function employeePaymentsForMonth(employeeId){
+  const { monthStart, monthEnd } = currentMonthRangeForPayments();
+
+  return state.cash
+    .filter(x =>
+      x.employee_id === employeeId &&
+      x.type === 'cikan' &&
+      x.tx_date >= monthStart &&
+      x.tx_date <= monthEnd
+    )
+    .sort((a,b) => String(a.tx_date).localeCompare(String(b.tx_date)));
+}
+
+function employeePaymentTotalForMonth(employeeId){
+  return employeePaymentsForMonth(employeeId)
+    .reduce((a,x) => a + Number(x.amount || 0), 0);
+}
+
+
+function monthlySummaryForEmployee(employeeId){
+  const records = state.monthlyAttendance.filter(r => r.employee_id === employeeId);
+  const summary = {
+    calisti: 0,
+    hafta_tatili: 0,
+    ucretli_izin: 0,
+    yillik_izin: 0,
+    ucretsiz_izin: 0,
+    cift_yevmiye: 0,
+    yarim_gun: 0,
+    raporlu: 0,
+    yevmiye: 0
+  };
+
+  records.forEach(r => {
+    if(summary[r.status] !== undefined) summary[r.status] += 1;
+    else summary[r.status] = (summary[r.status] || 0) + 1;
+    summary.yevmiye += attendanceWeight(r.status);
+  });
+
+  return summary;
+}
+
+function renderEmployees(){
+  if(byId('employeeActiveCount')) byId('employeeActiveCount').textContent = state.employees.length;
+  const tbody = byId('employeeTable');
+  tbody.innerHTML = '';
+
+  if(!state.employees.length){
+    tbody.innerHTML = '<tr><td colspan="16" class="muted">Aktif personel yok.</td></tr>';
+    renderAttendanceTable();
+    return;
+  }
+
+  state.employees.forEach(e => {
+    const s = monthlySummaryForEmployee(e.id);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><b>${e.full_name}</b></td>
+      <td>${e.role_title || ''}</td>
+      <td>${s.calisti || 0}</td>
+      <td>${s.hafta_tatili || 0}</td>
+      <td>${s.ucretli_izin || 0}</td>
+      <td>${s.yillik_izin || 0}</td>
+      <td>${s.ucretsiz_izin || 0}</td>
+      <td>${s.cift_yevmiye || 0}</td>
+      <td>${s.yarim_gun || 0}</td>
+      <td>${s.raporlu || 0}</td>
+      <td><b>${s.yevmiye || 0}</b></td>
+      <td><b>${money(employeePaymentTotalForMonth(e.id))}</b></td>
+      <td>${e.phone || ''}</td>
+      <td>${e.hire_date || ''}</td>
+      <td>${e.termination_date || ''}</td>
+      <td><button class="mini" onclick="openEmployeeEdit('${e.id}')">Düzenle</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  renderAttendanceTable();
+}
+
+function renderAttendanceTable(){
+  const tbody = byId('attendanceTable');
+  const mobileList = byId('attendanceMobileList');
+  if(!tbody) return;
+  tbody.innerHTML = '';
+  if(mobileList) mobileList.innerHTML = '';
+
+  if(!state.employees.length){
+    tbody.innerHTML = '<tr><td colspan="4" class="muted">Aktif personel yok.</td></tr>';
+    if(mobileList) mobileList.innerHTML = '<div class="muted" style="padding:12px">Aktif personel yok.</div>';
+    renderAttendanceSummary();
+    return;
+  }
+
+  state.employees.forEach(e => {
+    const rec = state.attendanceRecords.find(r => r.employee_id === e.id) || {};
+
+    // MASAÜSTÜ SATIR
+    const tr = document.createElement('tr');
+    tr.dataset.employeeId = e.id;
+    tr.innerHTML = `
+      <td><b>${e.full_name}</b></td>
+      <td>${e.role_title || ''}</td>
+      <td><select class="att-select" data-field="status">${attendanceOptions(rec.status || '')}</select></td>
+      <td></td>
+    `;
+    tbody.appendChild(tr);
+
+    // MOBİL KART
+    if(mobileList){
+      const div = document.createElement('div');
+      div.className = 'att-mobile-row';
+      div.dataset.employeeId = e.id;
+      div.innerHTML = `
+        <div class="att-name">${e.full_name}<span>${e.role_title || ''}</span></div>
+        <div class="att-status"><select data-field="status">${attendanceOptions(rec.status || '')}</select></div>
+
+      `;
+      mobileList.appendChild(div);
+    }
+  });
+
+  renderAttendanceSummary();
+}
+
+function renderAttendanceSummary(){
+  const box = byId('attendanceSummary');
+  if(!box) return;
+
+  const counts = {};
+  let weightedTotal = 0;
+
+  state.attendanceRecords.forEach(r => {
+    counts[r.status] = (counts[r.status] || 0) + 1;
+    weightedTotal += attendanceWeight(r.status);
+  });
+
+  const parts = Object.entries(counts).map(([status,count]) => `${attendanceLabel(status)}: ${count}`);
+  box.textContent = parts.length
+    ? `${parts.join(' • ')} • Yevmiye karşılığı: ${weightedTotal}`
+    : 'Bu tarih için henüz kayıt yok.';
+}
+
+async function loadAttendanceForDate(){
+  if(!state.activeBusinessId) return;
+  const selectedDate = byId('attendanceDate')?.value || today();
+  const { data, error } = await sb.from('attendance_records')
+    .select('*')
+    .eq('business_id', state.activeBusinessId)
+    .eq('attendance_date', selectedDate);
+
+  if(error) return alert(error.message);
+  state.attendanceRecords = data || [];
+  renderAttendanceTable();
+}
+
+
+function setAttendanceToday(){
+  const input = byId('attendanceDate');
+  if(!input) return;
+  input.value = today();
+  loadAttendanceForDate();
+}
+
+function changeAttendanceDate(deltaDays){
+  const input = byId('attendanceDate');
+  if(!input) return;
+
+  const base = input.value || today();
+  const d = new Date(base + 'T12:00:00');
+  d.setDate(d.getDate() + deltaDays);
+
+  input.value = d.toISOString().slice(0,10);
+  loadAttendanceForDate();
+}
+
+
+async function loadMonthlyAttendance(){
+  if(!state.activeBusinessId) return;
+
+  const month = byId('attendanceMonth')?.value || today().slice(0,7);
+  const monthStart = `${month}-01`;
+  const monthEnd = effectiveMonthEnd(month);
+
+  const { data, error } = await sb.from('attendance_records')
+    .select('*')
+    .eq('business_id', state.activeBusinessId)
+    .gte('attendance_date', monthStart)
+    .lte('attendance_date', monthEnd);
+
+  if(error) return alert(error.message);
+  state.monthlyAttendance = data || [];
+  renderEmployees();
+}
+
+function exportMonthlyAttendanceExcel(){
+  const month = byId('attendanceMonth')?.value || today().slice(0,7);
+  const rows = state.employees.map(e => {
+    const s = monthlySummaryForEmployee(e.id);
+    return {
+      personel: e.full_name || '',
+      gorev: e.role_title || '',
+      calisti: s.calisti || 0,
+      hafta_izni: s.hafta_tatili || 0,
+      ucretli_izin: s.ucretli_izin || 0,
+      yillik_izin: s.yillik_izin || 0,
+      ucretsiz_izin: s.ucretsiz_izin || 0,
+      cift_yevmiye: s.cift_yevmiye || 0,
+      yarim_gun: s.yarim_gun || 0,
+      raporlu: s.raporlu || 0,
+      yevmiye: s.yevmiye || 0,
+      odeme: Number(employeePaymentTotalForMonth(e.id) || 0).toFixed(2),
+      telefon: e.phone || '',
+      ise_giris: e.hire_date || '',
+      cikis: e.termination_date || ''
+    };
+  });
+  const headers = ['personel','gorev','calisti','hafta_izni','ucretli_izin','yillik_izin','ucretsiz_izin','cift_yevmiye','yarim_gun','raporlu','yevmiye','odeme','telefon','ise_giris','cikis'];
+  downloadFile(`personel_aylik_puantaj_${month}.csv`, toCSV(rows, headers), 'text/csv;charset=utf-8');
+}
+
+
+// Hem masaüstü tablo hem mobil kartları seç
+function attAllRows(){
+  var rows = [];
+  document.querySelectorAll('#attendanceTable tr[data-employee-id]').forEach(tr => rows.push(tr));
+  document.querySelectorAll('#attendanceMobileList .att-mobile-row[data-employee-id]').forEach(d => rows.push(d));
+  return rows;
+}
+
+function setAllAttendance(status){
+  attAllRows().forEach(el => {
+    const select = el.querySelector('select[data-field="status"]');
+    if(select) select.value = status;
+  });
+}
+
+function clearAllAttendance(){
+  attAllRows().forEach(el => {
+    const select = el.querySelector('select[data-field="status"]');
+    const note = el.querySelector('input[data-field="note"]');
+    if(select) select.value = '';
+    if(note) note.value = '';
+  });
+}
+
+async function saveAttendanceForDate(){
+  try {
+    if(!state.activeBusinessId) throw new Error('Aktif işletme yok.');
+    const selectedDate = byId('attendanceDate')?.value || today();
+
+    // Değerleri önce masaüstü tablodan, yoksa mobil karttan oku
+    const employeeValues = {};
+    attAllRows().forEach(el => {
+      const eid = el.dataset.employeeId;
+      const status = el.querySelector('select[data-field="status"]')?.value || '';
+      const note = el.querySelector('input[data-field="note"]')?.value || null;
+      if(status) employeeValues[eid] = { status, note };
+    });
+
+    const rows = Object.entries(employeeValues).map(([employee_id, vals]) => ({
+      business_id: state.activeBusinessId,
+      employee_id,
+      attendance_date: selectedDate,
+      status: vals.status,
+      note: vals.note,
+      created_by: state.session.user.id
+    }));
+
+    if(!rows.length) throw new Error('Kaydedilecek puantaj seçilmedi.');
+
+    const { error } = await sb.from('attendance_records')
+      .upsert(rows, { onConflict: 'employee_id,attendance_date' });
+
+    if(error) throw error;
+
+    alert('Puantaj kaydedildi.');
+    await loadAttendanceForDate();
+    await loadMonthlyAttendance();
+  } catch(err){
+    alert('Puantaj kaydedilemedi: ' + (err?.message || err));
+  }
+}
+
+
+function closeEmployeeEdit(){
+  byId('employeeEditModal').classList.add('hidden');
+}
+
+function monthDayName(dateStr){
+  const days = ['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
+  const d = new Date(dateStr + 'T12:00:00');
+  return days[d.getDay()];
+}
+
+function currentAttendanceMonth(){
+  return byId('attendanceMonth')?.value || today().slice(0,7);
+}
+
+function effectiveMonthEnd(month){
+  const currentMonth = today().slice(0,7);
+  const year = Number(month.slice(0,4));
+  const mon = Number(month.slice(5,7));
+  const lastDay = new Date(year, mon, 0).getDate();
+  const monthEnd = `${month}-${String(lastDay).padStart(2,'0')}`;
+
+  if(month === currentMonth) return today();
+  if(month > currentMonth) return `${month}-00`; // gelecek ay seçilirse yevmiye hesabına alma
+  return monthEnd;
+}
+
+function monthDates(month){
+  const year = Number(month.slice(0,4));
+  const mon = Number(month.slice(5,7));
+  const last = new Date(year, mon, 0).getDate();
+  const rows = [];
+  for(let day=1; day<=last; day++){
+    rows.push(`${month}-${String(day).padStart(2,'0')}`);
+  }
+  return rows;
+}
+
+
+function renderEmployeeEditPayments(employeeId){
+  const tbody = byId('employeeEditPaymentTable');
+  const totalBox = byId('employeeEditPaymentTotal');
+  if(!tbody) return;
+
+  const rows = employeePaymentsForMonth(employeeId);
+  const total = rows.reduce((a,x) => a + Number(x.amount || 0), 0);
+
+  if(totalBox) totalBox.textContent = money(total);
+
+  tbody.innerHTML = '';
+
+  if(!rows.length){
+    tbody.innerHTML = '<tr><td colspan="5" class="muted">Seçili ayda personel ödemesi yok.</td></tr>';
+    return;
+  }
+
+  rows.forEach(x => {
+    const paymentName = x.payment_method_id
+      ? (state.paymentMethods.find(pm => pm.id === x.payment_method_id)?.name || '-')
+      : '-';
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${x.tx_date || '-'}</td>
+      <td><b>${money(x.amount)}</b></td>
+      <td>${paymentName}</td>
+      <td>${x.description || ''}</td>
+      <td>
+        <button class="mini" onclick="closeEmployeeEdit(); openCashEdit('${x.id}')">Kasada Düzenle</button>
+        <button class="mini" onclick="deleteCash('${x.id}')">Sil</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+
+function openEmployeeEdit(employeeId){
+  const emp = state.employees.find(e => e.id === employeeId);
+  if(!emp) return alert('Personel bulunamadı.');
+
+  byId('editEmployeeId').value = emp.id;
+  byId('editEmployeeName').value = emp.full_name || '';
+  byId('editEmployeeRole').value = emp.role_title || '';
+  byId('editEmployeePhone').value = emp.phone || '';
+  byId('editEmployeeHireDate').value = emp.hire_date || '';
+  byId('editEmployeeTerminationDate').value = emp.termination_date || '';
+  const priv = state.employeePrivate.find(x => x.employee_id === emp.id) || {};
+  byId('editEmployeeNationalId').value = hasPermission('can_employee_private') ? (priv.national_id || '') : '';
+  byId('editEmployeeIban').value = hasPermission('can_employee_private') ? (priv.iban || '') : '';
+  byId('editEmployeeNationalId').disabled = !hasPermission('can_employee_private');
+  byId('editEmployeeIban').disabled = !hasPermission('can_employee_private');
+  byId('editEmployeeActive').value = emp.is_active ? 'true' : 'false';
+
+  const month = currentAttendanceMonth();
+  byId('employeeEditTitle').textContent = `${emp.full_name} - ${month} Puantajı`;
+  byId('employeeEditSummary').textContent = 'Personel bilgisi ve seçili ayın günlük puantajları.';
+
+  const tbody = byId('employeeEditAttendanceTable');
+  tbody.innerHTML = '';
+
+  monthDates(month).forEach(dateStr => {
+    const rec = state.monthlyAttendance.find(r => r.employee_id === emp.id && r.attendance_date === dateStr) || {};
+    const tr = document.createElement('tr');
+    tr.dataset.date = dateStr;
+    tr.innerHTML = `
+      <td class="nowrap">${dateStr}</td>
+      <td>${monthDayName(dateStr)}</td>
+      <td><select class="att-select" data-field="status">
+        <option value="">Boş</option>
+        ${attendanceOptions(rec.status || '')}
+      </select></td>
+      <td><input data-field="note" value="${rec.note || ''}" placeholder="Not" /></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  renderEmployeeEditPayments(emp.id);
+  byId('employeeEditModal').classList.remove('hidden');
+}
+
+function setEmployeeEditMonthAll(status){
+  document.querySelectorAll('#employeeEditAttendanceTable tr').forEach(tr => {
+    const select = tr.querySelector('select[data-field="status"]');
+    if(select) select.value = status;
+  });
+}
+
+async function saveEmployeeEdit(){
+  try {
+    const employeeId = byId('editEmployeeId').value;
+    if(!employeeId) throw new Error('Personel seçili değil.');
+
+    const employeePayload = {
+      full_name: byId('editEmployeeName').value.trim(),
+      role_title: byId('editEmployeeRole').value.trim() || null,
+      phone: byId('editEmployeePhone').value.trim() || null,
+      hire_date: byId('editEmployeeHireDate').value || null,
+      termination_date: byId('editEmployeeTerminationDate').value || null,
+      is_active: byId('editEmployeeActive').value === 'true'
+    };
+
+    if(!employeePayload.full_name) throw new Error('Ad Soyad boş olamaz.');
+
+    const { error: empError } = await sb.from('employees')
+      .update(employeePayload)
+      .eq('id', employeeId)
+      .eq('business_id', state.activeBusinessId);
+
+    if(empError) throw empError;
+
+    if(hasPermission('can_employee_private')){
+      const privatePayload = {
+        business_id: state.activeBusinessId,
+        employee_id: employeeId,
+        national_id: byId('editEmployeeNationalId').value.trim() || null,
+        iban: byId('editEmployeeIban').value.trim() || null
+      };
+
+      const { error: privateError } = await sb.from('employee_private')
+        .upsert(privatePayload, { onConflict: 'business_id,employee_id' });
+
+      if(privateError) throw privateError;
+    }
+
+    const upsertRows = [];
+    const deleteDates = [];
+
+    document.querySelectorAll('#employeeEditAttendanceTable tr[data-date]').forEach(tr => {
+      const dateStr = tr.dataset.date;
+      const status = tr.querySelector('select[data-field="status"]')?.value || '';
+      const note = tr.querySelector('input[data-field="note"]')?.value || null;
+      const existed = state.monthlyAttendance.some(r => r.employee_id === employeeId && r.attendance_date === dateStr);
+
+      if(status){
+        upsertRows.push({
+          business_id: state.activeBusinessId,
+          employee_id: employeeId,
+          attendance_date: dateStr,
+          status,
+          note,
+          created_by: state.session.user.id
+        });
+      } else if(existed) {
+        deleteDates.push(dateStr);
+      }
+    });
+
+    if(upsertRows.length){
+      const { error } = await sb.from('attendance_records')
+        .upsert(upsertRows, { onConflict: 'employee_id,attendance_date' });
+      if(error) throw error;
+    }
+
+    if(deleteDates.length){
+      const { error } = await sb.from('attendance_records')
+        .delete()
+        .eq('business_id', state.activeBusinessId)
+        .eq('employee_id', employeeId)
+        .in('attendance_date', deleteDates);
+      if(error) throw error;
+    }
+
+    alert('Personel ve puantaj bilgileri güncellendi.');
+    closeEmployeeEdit();
+    await loadCore();
+  } catch(err){
+    alert('Düzenleme kaydedilemedi: ' + (err?.message || err));
+  }
+}
+
+
+function closeMovements(){
+  byId('movementModal').classList.add('hidden');
+}
+
+function showSupplierMovements(supplierId){
+  const supplier = state.suppliers.find(x => x.id === supplierId);
+  const balanceRow = state.supplierBalances.find(x => x.id === supplierId);
+  if(!supplier) return alert('Tedarikçi bulunamadı.');
+
+  const rows = [];
+
+  if(Number(supplier.opening_balance || 0) !== 0){
+    rows.push({
+      source: 'opening',
+      id: supplier.id,
+      date: supplier.created_at ? supplier.created_at.slice(0,10) : '',
+      label: 'Açılış Bakiyesi',
+      desc: '',
+      debit: Number(supplier.opening_balance || 0),
+      credit: 0
+    });
+  }
+
+  state.supplierMovements
+    .filter(x => x.supplier_id === supplierId)
+    .forEach(x => {
+      const isAlis = x.type === 'alis';
+      rows.push({
+        source: 'movement',
+        id: x.id,
+        date: x.movement_date,
+        label: isAlis ? 'Alış' : 'İade',
+        desc: x.note || '',
+        debit: isAlis ? Number(x.amount || 0) : 0,
+        credit: isAlis ? 0 : Number(x.amount || 0)
+      });
+    });
+
+  state.cash
+    .filter(x => x.supplier_id === supplierId && x.type === 'cikan')
+    .forEach(x => {
+      rows.push({
+        source: 'cash',
+        id: x.id,
+        date: x.tx_date,
+        label: 'Kasa Ödemesi',
+        desc: x.description || '',
+        debit: 0,
+        credit: Number(x.amount || 0)
+      });
+    });
+
+  rows.sort((a,b) => String(a.date).localeCompare(String(b.date)));
+
+  let running = 0;
+  const tbody = byId('movementTable');
+  const mobileList = byId('movementMobileList');
+  tbody.innerHTML = '';
+  if(mobileList) mobileList.innerHTML = '';
+
+  rows.forEach(r => {
+    running += Number(r.debit || 0) - Number(r.credit || 0);
+
+    let action = '-';
+    let actionMobile = '';
+    if(r.source === 'movement'){
+      action = `<button class="mini" onclick="editSupplierMovement('${r.id}')">Düzenle</button> <button class="mini" onclick="deleteSupplierMovement('${r.id}')">Sil</button>`;
+      actionMobile = `<button class="mini" onclick="editSupplierMovement('${r.id}')">Düzenle</button><button class="mini" onclick="deleteSupplierMovement('${r.id}')">Sil</button>`;
+    } else if(r.source === 'cash'){
+      action = `<button class="mini" onclick="closeMovements(); openCashEdit('${r.id}')">Kasada Düzenle</button> <button class="mini" onclick="deleteCash('${r.id}')">Sil</button>`;
+      actionMobile = `<button class="mini" onclick="closeMovements();openCashEdit('${r.id}')">Kasada Düzenle</button><button class="mini" onclick="deleteCash('${r.id}')">Sil</button>`;
+    } else if(r.source === 'opening'){
+      action = `<button class="mini" onclick="editSupplierPrompt('${r.id}')">Açılışı Düzenle</button>`;
+      actionMobile = `<button class="mini" onclick="editSupplierPrompt('${r.id}')">Açılışı Düzenle</button>`;
+    }
+
+    // MASAÜSTÜ SATIR
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.date || '-'}</td><td>${r.label}</td><td>${r.desc}</td><td>${r.debit ? money(r.debit) : '-'}</td><td>${r.credit ? money(r.credit) : '-'}</td><td><b>${money(running)}</b></td><td>${action}</td>`;
+    tbody.appendChild(tr);
+
+    // MOBİL KART
+    if(mobileList){
+      const runningColor = running > 0 ? 'var(--danger)' : 'var(--ok)';
+      const div = document.createElement('div');
+      div.className = 'movement-card';
+      div.innerHTML = `
+        <div class="movement-card-top">
+          <div class="movement-card-type">${r.label}</div>
+          <div class="movement-card-date">${r.date || '-'}</div>
+        </div>
+        ${r.desc ? `<div class="movement-card-desc">${r.desc}</div>` : ''}
+        <div class="movement-card-amounts">
+          ${r.debit ? `<div class="movement-card-amount"><span class="lbl">Borç Artışı</span><span style="color:var(--danger)">+${money(r.debit)}</span></div>` : ''}
+          ${r.credit ? `<div class="movement-card-amount"><span class="lbl">Borç Azalışı</span><span style="color:var(--ok)">-${money(r.credit)}</span></div>` : ''}
+        </div>
+        <div class="movement-card-balance">Bakiye: <b style="color:${runningColor}">${money(running)}</b></div>
+        ${actionMobile ? `<div class="movement-card-actions">${actionMobile}</div>` : ''}
+      `;
+      mobileList.appendChild(div);
+    }
+  });
+
+  if(rows.length === 0){
+    tbody.innerHTML = '<tr><td colspan="7" class="muted">Henüz hareket yok.</td></tr>';
+    if(mobileList) mobileList.innerHTML = '<div class="muted" style="padding:12px;text-align:center">Henüz hareket yok.</div>';
+  }
+
+  byId('movementTitle').textContent = `${supplier.name} - Hareketler`;
+  byId('movementSummary').textContent = `Güncel bakiye: ${money(balanceRow?.balance || 0)}`;
+  byId('movementModal').classList.remove('hidden');
+}
+
+async function editSupplierPrompt(supplierId){
+  if(!hasPermission('can_supplier_edit')) return alert('Tedarikçi düzenleme yetkin yok.');
+  const supplier = state.suppliers.find(s => s.id === supplierId);
+  if(!supplier) return alert('Tedarikçi bulunamadı.');
+
+  const name = prompt('Tedarikçi adı', supplier.name || '');
+  if(name === null) return;
+
+  const openingRaw = prompt('Açılış bakiyesi', String(supplier.opening_balance || 0));
+  if(openingRaw === null) return;
+
+  const opening_balance = Number(openingRaw || 0);
+  if(Number.isNaN(opening_balance)) return alert('Geçerli açılış bakiyesi gir.');
+
+  const { error } = await sb.from('suppliers')
+    .update({ name: name.trim(), opening_balance })
+    .eq('id', supplierId)
+    .eq('business_id', state.activeBusinessId);
+
+  if(error) return alert(error.message);
+  closeMovements?.();
+  closeCashEdit?.();
+  closeEmployeeEdit?.();
+  await loadCore();
+}
+
+async function deleteSupplier(supplierId){
+  if(!hasPermission('can_supplier_edit')) return alert('Tedarikçi silme yetkin yok.');
+  const supplier = state.suppliers.find(s => s.id === supplierId);
+  if(!supplier) return alert('Tedarikçi bulunamadı.');
+
+  const linkedCash = state.cash.filter(c => c.supplier_id === supplierId);
+  if(linkedCash.length){
+    alert('Bu tedarikçiye bağlı kasa kaydı var. Önce Kasa bölümünden veya hareketler ekranından bu kasa kayıtlarını silmelisin.');
+    return;
+  }
+
+  if(!confirm(`${supplier.name} tedarikçisini ve alış/iade hareketlerini silmek istiyor musun?`)) return;
+
+  const { error } = await sb.from('suppliers')
+    .delete()
+    .eq('id', supplierId)
+    .eq('business_id', state.activeBusinessId);
+
+  if(error) return alert(error.message);
+  await loadCore();
+}
+
+async function editSupplierMovement(movementId){
+  const mv = state.supplierMovements.find(m => m.id === movementId);
+  if(!mv) return alert('Hareket bulunamadı.');
+
+  const type = prompt('Tür: alis veya iade', mv.type);
+  if(type === null) return;
+  const cleanType = type.trim().toLowerCase();
+  if(cleanType !== 'alis' && cleanType !== 'iade') return alert('Tür sadece alis veya iade olabilir.');
+
+  const amountRaw = prompt('Tutar', String(mv.amount || 0));
+  if(amountRaw === null) return;
+  const amount = Number(amountRaw);
+  if(!amount || amount < 0) return alert('Geçerli tutar gir.');
+
+  const date = prompt('Tarih YYYY-AA-GG', mv.movement_date || today());
+  if(date === null) return;
+
+  const note = prompt('Not', mv.note || '');
+  if(note === null) return;
+
+  const { error } = await sb.from('supplier_movements')
+    .update({ type: cleanType, amount, movement_date: date, note })
+    .eq('id', movementId)
+    .eq('business_id', state.activeBusinessId);
+
+  if(error) return alert(error.message);
+  await loadCore();
+  const supplierId = mv.supplier_id;
+  showSupplierMovements(supplierId);
+}
+
+async function deleteSupplierMovement(movementId){
+  const mv = state.supplierMovements.find(m => m.id === movementId);
+  if(!mv) return alert('Hareket bulunamadı.');
+  if(!confirm('Bu tedarikçi hareketini silmek istiyor musun?')) return;
+
+  const { error } = await sb.from('supplier_movements')
+    .delete()
+    .eq('id', movementId)
+    .eq('business_id', state.activeBusinessId);
+
+  if(error) return alert(error.message);
+  await loadCore();
+  showSupplierMovements(mv.supplier_id);
+}
+
+
+async function createSupplier(){
+  const name = byId('supplierName').value.trim();
+  const opening_balance = Number(byId('supplierOpening').value || 0);
+  if(!name) return alert('Tedarikçi adı gerekli.');
+  const { error } = await sb.from('suppliers').insert({
+    business_id: state.activeBusinessId,
+    name, opening_balance,
+    created_by: state.session.user.id
+  });
+  if(error) return alert(error.message);
+  byId('supplierName').value = '';
+  byId('supplierOpening').value = '';
+  await loadCore();
+}
+async function addMovementPrompt(supplierId, type){
+  const amountRaw = prompt(type === 'alis' ? 'Alış tutarı' : 'İade tutarı');
+  if(amountRaw === null) return;
+  const amount = Number(amountRaw);
+  if(!amount || amount < 0) return alert('Geçerli tutar gir.');
+  const { error } = await sb.from('supplier_movements').insert({
+    business_id: state.activeBusinessId,
+    supplier_id: supplierId,
+    type, amount,
+    movement_date: today(),
+    created_by: state.session.user.id
+  });
+  if(error) return alert(error.message);
+  await loadCore();
+}
+async function createCash(){
+  const msgEl = byId('cashMsg');
+  if(msgEl) msgEl.textContent = '';
+
+  try {
+    if(!state.activeBusinessId) throw new Error('Aktif işletme bulunamadı.');
+    if(!state.session?.user?.id) throw new Error('Kullanıcı oturumu bulunamadı.');
+
+    const type = byId('cashType').value;
+    const amount = Number(byId('cashAmount').value || 0);
+    const department_id = byId('cashDepartment').value || null;
+    let supplier_id = null;
+    let employee_id = null;
+    const payment_method_id = byId('cashPaymentMethod').value || null;
+    const description = byId('cashDesc').value.trim();
+
+    if(!amount || amount <= 0) throw new Error('Geçerli tutar gir.');
+    if(!department_id) throw new Error('Departman seç.');
+    if(!payment_method_id) throw new Error('Ödeme yöntemi seç.');
+
+    const depName = selectedDepartmentName();
+
+    if(depName === 'tedarikçi' || depName === 'tedarikci'){
+      supplier_id = byId('cashSupplier').value || null;
+      if(!supplier_id) throw new Error('Tedarikçi seç.');
+    }
+
+    if(depName === 'personel'){
+      employee_id = byId('cashEmployee').value || null;
+      if(!employee_id) throw new Error('Personel seç.');
+    }
+
+    const payload = {
+      business_id: state.activeBusinessId,
+      type,
+      amount,
+      supplier_id,
+      employee_id,
+      payment_method_id,
+      department_id,
+      transaction_type_id: department_id,
+      description,
+      tx_date: today(),
+      created_by: state.session.user.id
+    };
+
+    const { data, error } = await sb
+      .from('cash_transactions')
+      .insert(payload)
+      .select('id')
+      .single();
+
+    if(error) throw error;
+    if(!data?.id) throw new Error('Kayıt oluşturuldu ama ID dönmedi.');
+
+    byId('cashAmount').value = '';
+    byId('cashPaymentMethod').value = '';
+    byId('cashDepartment').value = '';
+    byId('cashSupplier').value = '';
+    byId('cashEmployee').value = '';
+    byId('cashDesc').value = '';
+    onCashDepartmentChange();
+
+    if(msgEl) msgEl.textContent = 'Kasa kaydı eklendi.';
+    await loadCore();
+    showTab('cash', document.querySelector(".tab[onclick*=\"cash\"]"));
+  } catch (err) {
+    const message = err?.message || String(err);
+    if(msgEl) msgEl.textContent = 'Hata: ' + message;
+    alert('Kasa kaydı eklenemedi: ' + message);
+  }
+}
+
+
+function fillSelectOptions(selectId, items, placeholder, labelField='name'){
+  const select = byId(selectId);
+  if(!select) return;
+  select.innerHTML = `<option value="">${placeholder}</option>`;
+  items.forEach(item => {
+    const opt = document.createElement('option');
+    opt.value = item.id;
+    opt.textContent = item[labelField] || item.name || item.full_name || item.id;
+    select.appendChild(opt);
+  });
+}
+
+function closeCashEdit(){
+  byId('cashEditModal').classList.add('hidden');
+}
+
+function editCashDepartmentName(){
+  const id = byId('editCashDepartment')?.value;
+  const dep = state.departments.find(x => x.id === id);
+  return (dep?.name || '').toLocaleLowerCase('tr-TR');
+}
+
+function onEditCashDepartmentChange(){
+  const name = editCashDepartmentName();
+  const supplier = byId('editCashSupplier');
+  const employee = byId('editCashEmployee');
+  if(!supplier || !employee) return;
+
+  supplier.classList.add('hidden');
+  employee.classList.add('hidden');
+
+  if(name === 'tedarikçi' || name === 'tedarikci'){
+    supplier.classList.remove('hidden');
+  } else if(name === 'personel'){
+    employee.classList.remove('hidden');
+  }
+}
+
+function openCashEdit(id){
+  if(!hasPermission('can_cash_edit')) return alert('Kasa düzenleme yetkin yok.');
+  const cash = state.cash.find(x => x.id === id);
+  if(!cash) return alert('Kasa kaydı bulunamadı.');
+
+  fillSelectOptions('editCashPaymentMethod', state.paymentMethods.filter(x=>x.is_active), 'Ödeme yöntemi seç');
+  fillSelectOptions('editCashDepartment', state.departments.filter(x=>x.is_active), 'Departman seç');
+  fillSelectOptions('editCashSupplier', state.suppliers, 'Tedarikçi seç');
+  fillSelectOptions('editCashEmployee', state.employees, 'Personel seç', 'full_name');
+
+  byId('editCashId').value = cash.id;
+  byId('editCashDate').value = cash.tx_date || today();
+  byId('editCashType').value = cash.type || 'cikan';
+  byId('editCashAmount').value = cash.amount || '';
+  byId('editCashPaymentMethod').value = cash.payment_method_id || '';
+  byId('editCashDepartment').value = cash.department_id || cash.transaction_type_id || '';
+  byId('editCashSupplier').value = cash.supplier_id || '';
+  byId('editCashEmployee').value = cash.employee_id || '';
+  byId('editCashDesc').value = cash.description || '';
+
+  onEditCashDepartmentChange();
+  byId('cashEditModal').classList.remove('hidden');
+}
+
+async function saveCashEdit(){
+  try {
+    const id = byId('editCashId').value;
+    if(!id) throw new Error('Kasa kaydı seçili değil.');
+
+    const type = byId('editCashType').value;
+    const amount = Number(byId('editCashAmount').value || 0);
+    const payment_method_id = byId('editCashPaymentMethod').value || null;
+    const department_id = byId('editCashDepartment').value || null;
+    const description = byId('editCashDesc').value.trim();
+    const tx_date = byId('editCashDate').value || today();
+
+    if(!amount || amount <= 0) throw new Error('Geçerli tutar gir.');
+    if(!payment_method_id) throw new Error('Ödeme yöntemi seç.');
+    if(!department_id) throw new Error('Departman seç.');
+
+    let supplier_id = null;
+    let employee_id = null;
+    const depName = editCashDepartmentName();
+
+    if(depName === 'tedarikçi' || depName === 'tedarikci'){
+      supplier_id = byId('editCashSupplier').value || null;
+      if(!supplier_id) throw new Error('Tedarikçi seç.');
+    }
+
+    if(depName === 'personel'){
+      employee_id = byId('editCashEmployee').value || null;
+      if(!employee_id) throw new Error('Personel seç.');
+    }
+
+    const { error } = await sb.from('cash_transactions')
+      .update({
+        type,
+        amount,
+        payment_method_id,
+        department_id,
+        transaction_type_id: department_id,
+        supplier_id,
+        employee_id,
+        description,
+        tx_date
+      })
+      .eq('id', id)
+      .eq('business_id', state.activeBusinessId);
+
+    if(error) throw error;
+
+    closeCashEdit();
+    await loadCore();
+  } catch(err){
+    alert('Kasa kaydı güncellenemedi: ' + (err?.message || err));
+  }
+}
+
+
+async function deleteCash(id){
+  if(!hasPermission('can_cash_delete')) return alert('Kasa silme yetkin yok.');
+  if(!confirm('Bu kasa kaydını silmek istiyor musun?')) return;
+  const { error } = await sb.from('cash_transactions')
+    .delete()
+    .eq('id', id)
+    .eq('business_id', state.activeBusinessId);
+
+  if(error) return alert(error.message);
+  await loadCore();
+}
+
+async function createPaymentMethod(){
+  const name = byId('paymentMethodName').value.trim();
+  if(!name) return alert('Ödeme yöntemi adı gerekli.');
+
+  const maxSort = state.paymentMethods.reduce((m,x)=>Math.max(m, Number(x.sort_order||0)), 0);
+  const { error } = await sb.from('payment_methods').insert({
+    business_id: state.activeBusinessId,
+    name,
+    sort_order: maxSort + 1,
+    is_active: true
+  });
+
+  if(error) return alert(error.message);
+  byId('paymentMethodName').value = '';
+  await loadCore();
+}
+
+async function togglePaymentMethod(id, nextActive){
+  const { error } = await sb.from('payment_methods')
+    .update({ is_active: nextActive })
+    .eq('id', id)
+    .eq('business_id', state.activeBusinessId);
+
+  if(error) return alert(error.message);
+  await loadCore();
+}
+
+
+async function createDepartment(){
+  const name = byId('departmentName').value.trim();
+  if(!name) return alert('Departman adı gerekli.');
+
+  const maxSort = state.departments.reduce((m,x)=>Math.max(m, Number(x.sort_order||0)), 0);
+  const { error } = await sb.from('transaction_types').insert({
+    business_id: state.activeBusinessId,
+    name,
+    sort_order: maxSort + 1,
+    is_active: true
+  });
+
+  if(error) return alert(error.message);
+  byId('departmentName').value = '';
+  await loadCore();
+}
+
+async function toggleDepartment(id, nextActive){
+  const { error } = await sb.from('transaction_types')
+    .update({ is_active: nextActive })
+    .eq('id', id)
+    .eq('business_id', state.activeBusinessId);
+
+  if(error) return alert(error.message);
+  await loadCore();
+}
+
+async function createEmployee(){
+  const full_name = byId('employeeName').value.trim();
+  const role_title = byId('employeeRole').value.trim();
+  const phone = byId('employeePhone').value.trim();
+  const hire_date = byId('employeeHireDate')?.value || null;
+  const national_id = byId('employeeNationalId')?.value.trim() || null;
+  const iban = byId('employeeIban')?.value.trim() || null;
+  if(!full_name) return alert('Personel adı gerekli.');
+  const { data: empData, error } = await sb.from('employees').insert({
+    business_id: state.activeBusinessId,
+    full_name, role_title, phone, hire_date,
+    created_by: state.session.user.id
+  }).select('id').single();
+  if(error) return alert(error.message);
+
+  if(hasPermission('can_employee_private') && empData?.id && (national_id || iban)){
+    const { error: privateError } = await sb.from('employee_private').upsert({
+      business_id: state.activeBusinessId,
+      employee_id: empData.id,
+      national_id,
+      iban
+    }, { onConflict: 'business_id,employee_id' });
+    if(privateError) return alert(privateError.message);
+  }
+  byId('employeeName').value = '';
+  byId('employeeRole').value = '';
+  byId('employeePhone').value = '';
+  if(byId('employeeHireDate')) byId('employeeHireDate').value = '';
+  if(byId('employeeNationalId')) byId('employeeNationalId').value = '';
+  if(byId('employeeIban')) byId('employeeIban').value = '';
+  await loadCore();
+}
+
+
+
+boot();
+</script>
+<!-- payment-methods-v1 -->
+<!-- Galata V1 GitHub Pages ready: permissions + private employee data -->
+<!-- stock-moremenu-final -->
+</body>
+</html>
